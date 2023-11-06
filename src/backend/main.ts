@@ -235,7 +235,7 @@ async function initializeWindow(): Promise<BrowserWindow> {
     detectVCRedist(mainWindow)
   }
 
-  if (process.env.VITE_DEV_SERVER_URL) {
+  if (process.env.ELECTRON_RENDERER_URL) {
     if (!process.env.HEROIC_NO_REACT_DEVTOOLS) {
       import('electron-devtools-installer').then((devtools) => {
         const { default: installExtension, REACT_DEVELOPER_TOOLS } = devtools
@@ -245,12 +245,12 @@ async function initializeWindow(): Promise<BrowserWindow> {
         })
       })
     }
-    mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL)
+    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
     // Open the DevTools.
     mainWindow.webContents.openDevTools()
   } else {
     Menu.setApplicationMenu(null)
-    mainWindow.loadURL(`file://${path.join(publicDir, '../build/index.html')}`)
+    mainWindow.loadFile(join(publicDir, 'index.html'))
     autoUpdater.checkForUpdates()
   }
 
