@@ -897,7 +897,7 @@ async function callRunner(
       .join(',')
     commandParts = [
       'Start-Process',
-      `${fullRunnerPath}`,
+      `"\`"${fullRunnerPath}\`""`,
       '-Wait',
       '-ArgumentList',
       argsAsString,
