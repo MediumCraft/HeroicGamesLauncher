@@ -875,6 +875,8 @@ interface RunnerProps {
 
 const commandsRunning = {}
 
+let shouldUsePowerShell: boolean | null = null
+
 async function callRunner(
   commandParts: string[],
   runner: RunnerProps,
@@ -890,8 +892,12 @@ async function callRunner(
   let fullRunnerPath = join(runner.dir, bin)
 
   // On Windows: Use PowerShell's `Start-Process` to wait for the process and
-  // its children to exit
-  if (isWindows) {
+  // its children to exit, provided PowerShell is available
+  if (shouldUsePowerShell === null)
+    shouldUsePowerShell =
+      isWindows && !!(await searchForExecutableOnPath('powershell'))
+
+  if (shouldUsePowerShell) {
     const argsAsString = commandParts.map((part) => `"\`"${part}\`""`).join(',')
     commandParts = [
       'Start-Process',
