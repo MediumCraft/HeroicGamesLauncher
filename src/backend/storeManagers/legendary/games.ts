@@ -74,13 +74,8 @@ import {
   AllowedWineFlags,
   getWineFlags
 } from 'backend/utils/compatibility_layers'
-import {
-  LegendaryAppName,
-  LegendaryPlatform,
-  NonEmptyString,
-  Path,
-  PositiveInteger
-} from './commands/base'
+import { NonEmptyString, PositiveInteger } from 'backend/schemas'
+import { LegendaryAppName, LegendaryPlatform, Path } from './commands/base'
 import { LegendaryCommand } from './commands'
 
 /**
