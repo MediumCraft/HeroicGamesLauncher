@@ -5,6 +5,7 @@ import { sendGameStatusUpdate } from 'backend/utils'
 import { enable, getStatus, isEnabled } from './eos_overlay/eos_overlay'
 import { split } from 'shlex'
 import { logError } from 'backend/logger/logger'
+import { getGameConfig } from '../../config/game'
 
 export const legendarySetup = async (appName: string) => {
   const gameInfo = getGameInfo(appName)
@@ -27,7 +28,8 @@ export const legendarySetup = async (appName: string) => {
       '/f'
     ],
     wait: true,
-    protonVerb: 'waitforexitandrun'
+    protonVerb: 'waitforexitandrun',
+    gameConfig: getGameConfig(appName, 'legendary')
   })
 
   const winPlatforms = ['Windows', 'Win32', 'windows']
@@ -50,7 +52,8 @@ export const legendarySetup = async (appName: string) => {
             ...split(info.manifest.prerequisites.args)
           ],
           wait: true,
-          protonVerb: 'waitforexitandrun'
+          protonVerb: 'waitforexitandrun',
+          gameConfig: getGameConfig(appName, 'legendary')
         })
       }
     } catch (error) {

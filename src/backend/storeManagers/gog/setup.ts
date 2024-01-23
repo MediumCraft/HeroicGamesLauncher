@@ -10,13 +10,13 @@ import { copySync } from 'fs-extra'
 import path from 'node:path'
 import { GameInfo, InstalledInfo } from 'common/types'
 import { checkWineBeforeLaunch, getShellPath, spawnAsync } from '../../utils'
-import { GameConfig } from '../../game_config'
 import { logError, logInfo, LogPrefix, logWarning } from '../../logger/logger'
 import { isWindows } from '../../constants'
 import ini from 'ini'
 import { isOnline } from '../../online_monitor'
 import { getWinePath, runWineCommand, verifyWinePrefix } from '../../launcher'
 import { getGameInfo as getGogLibraryGameInfo } from 'backend/storeManagers/gog/library'
+import { getGameConfig } from '../../config/game'
 const nonNativePathSeparator = path.sep === '/' ? '\\' : '/'
 
 /**
@@ -47,19 +47,19 @@ async function setup(
     LogPrefix.Gog
   )
 
-  const gameSettings = GameConfig.get(appName).config
+  const gameConfig = getGameConfig(appName, 'gog')
   if (!isWindows) {
-    const isWineOkToLaunch = await checkWineBeforeLaunch(gameInfo, gameSettings)
+    const isWineOkToLaunch = await checkWineBeforeLaunch(gameInfo, gameConfig)
 
     if (!isWineOkToLaunch) {
       logError(
-        `Was not possible to run setup using ${gameSettings.wineVersion.name}`,
+        `Was not possible to run setup using ${gameConfig.wineVersion.name}`,
         LogPrefix.Backend
       )
       return
     }
     // Make sure prefix is initalized correctly
-    await verifyWinePrefix(gameSettings)
+    await verifyWinePrefix(gameConfig)
   }
   // Funny part begins here
   // Deterimine if it's basically from .script file or from manifest
@@ -75,19 +75,15 @@ async function setup(
     const [localAppData, documentsPath, installPath] = await Promise.all([
       isWindows
         ? getShellPath('%APPDATA%')
-        : getWinePath({ path: '%APPDATA%', gameSettings }),
+        : getWinePath('%APPDATA%', gameConfig),
 
       isWindows
         ? getShellPath('%USERPROFILE%/Documents')
-        : getWinePath({ path: '%USERPROFILE%/Documents', gameSettings }),
+        : getWinePath('%USERPROFILE%/Documents', gameConfig),
 
       isWindows
         ? gameInfo.install.install_path || ''
-        : getWinePath({
-            path: gameInfo.install.install_path || '',
-            gameSettings,
-            variant: 'win'
-          })
+        : getWinePath(gameInfo.install.install_path || '', gameConfig, 'win')
     ])
 
     // In the future we need to find more path cases
@@ -171,7 +167,7 @@ async function setup(
             break
           }
           await runWineCommand({
-            gameSettings,
+            gameConfig,
             gameInstallPath: gameInfo.install.install_path,
             commandParts: command,
             wait: true,
@@ -277,7 +273,7 @@ async function setup(
           )
 
           await runWineCommand({
-            gameSettings,
+            gameConfig,
             gameInstallPath: gameInfo.install.install_path,
             commandParts: [executablePath, ...exeArguments],
             wait: true,
@@ -433,11 +429,11 @@ async function setup(
 
     const installPath = isWindows
       ? gameInfo.install.install_path || ''
-      : await getWinePath({
-          path: gameInfo.install.install_path || '',
-          gameSettings,
-          variant: 'win'
-        })
+      : await getWinePath(
+          gameInfo.install.install_path || '',
+          gameConfig,
+          'win'
+        )
     let Language = 'english'
     // Load game language data
     if (existsSync(infoPath)) {
@@ -481,7 +477,7 @@ async function setup(
     } else {
       logInfo(['Setup: Executing', command, `${supportDir}`], LogPrefix.Gog)
       await runWineCommand({
-        gameSettings,
+        gameConfig,
         gameInstallPath: gameInfo.install.install_path,
         commandParts: command,
         wait: true,
