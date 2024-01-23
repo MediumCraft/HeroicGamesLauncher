@@ -32,11 +32,6 @@ export const getPlatform = async () => ipcRenderer.invoke('getPlatform')
 
 export const isLoggedIn = async () => ipcRenderer.invoke('isLoggedIn')
 
-export const writeConfig = async (data: {
-  appName: string
-  config: Partial<AppSettings>
-}) => ipcRenderer.invoke('writeConfig', data)
-
 export const kill = async (appName: string, runner: Runner) =>
   ipcRenderer.invoke('kill', appName, runner)
 
@@ -72,12 +67,6 @@ export const getExtraInfo = async (appName: string, runner: Runner) =>
 
 export const getLaunchOptions = async (appName: string, runner: Runner) =>
   ipcRenderer.invoke('getLaunchOptions', appName, runner)
-
-export const getGameSettings = async (
-  appName: string,
-  runner: Runner
-): Promise<GameSettings | null> =>
-  ipcRenderer.invoke('getGameSettings', appName, runner)
 
 export const getInstallInfo = async (
   appName: string,
