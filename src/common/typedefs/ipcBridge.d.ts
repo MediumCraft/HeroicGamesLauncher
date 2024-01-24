@@ -114,6 +114,7 @@ interface SyncIPCFunctions {
     appName: string,
     component: string
   }) => void
+  copySettingsToClipboard: (appName: string, runner: Runner) => void
 }
 
 // ts-prune-ignore-next
