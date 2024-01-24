@@ -26,13 +26,7 @@ import {
   DialogFooter,
   DialogContent
 } from 'frontend/components/UI/Dialog'
-import {
-  getProgress,
-  size,
-  getInstallInfo,
-  writeConfig,
-  install
-} from 'frontend/helpers'
+import { getProgress, size, getInstallInfo, install } from 'frontend/helpers'
 import ContextProvider from 'frontend/state/ContextProvider'
 import { InstallProgress } from 'frontend/types'
 import React, {
@@ -44,9 +38,9 @@ import React, {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AvailablePlatforms } from '../index'
-import { configStore } from 'frontend/helpers/electronStores'
 import DLCDownloadListing from './DLCDownloadListing'
 import { hasAnticheatInfo } from 'frontend/hooks/hasAnticheatInfo'
+import { useGlobalConfig } from 'frontend/hooks/config'
 
 interface Props {
   backdropClick: () => void
@@ -96,15 +90,6 @@ function getUniqueKey(sdl: SelectiveDownload) {
   return ''
 }
 
-const userHome = configStore.get('userHome', '')
-
-function getDefaultInstallPath() {
-  const { defaultInstallPath = `${userHome}/Games/Heroic` } = {
-    ...configStore.get_nodefault('settings')
-  }
-  return defaultInstallPath
-}
-
 export default function DownloadDialog({
   backdropClick,
   appName,
@@ -122,6 +107,7 @@ export default function DownloadDialog({
   ) as InstallProgress
   const { libraryStatus, platform, showDialogModal } =
     useContext(ContextProvider)
+  const [defaultInstallPath] = useGlobalConfig('defaultInstallPath')
 
   const isWin = platform === 'win32'
 
@@ -131,9 +117,7 @@ export default function DownloadDialog({
   const [installLanguages, setInstallLanguages] = useState(Array<string>())
   const [installLanguage, setInstallLanguage] = useState('')
 
-  const [installPath, setInstallPath] = useState(
-    previousProgress.folder || getDefaultInstallPath()
-  )
+  const [installPath, setInstallPath] = useState(previousProgress.folder ?? '')
   const gameStatus: GameStatus = libraryStatus.filter(
     (game: GameStatus) => game.appName === appName
   )[0]
@@ -187,6 +171,10 @@ export default function DownloadDialog({
     [selectedSdls]
   )
 
+  useEffect(() => {
+    if (!installPath && defaultInstallPath) setInstallPath(defaultInstallPath)
+  }, [defaultInstallPath])
+
   function handleDlcs() {
     setInstallAllDlcs(!installAllDlcs)
   }
@@ -229,18 +217,17 @@ export default function DownloadDialog({
 
     // Write Default game config with prefix on linux
     if (!isWin) {
-      const gameSettings = await window.api.requestGameSettings(appName)
-
       if (wineVersion) {
-        writeConfig({
-          appName,
-          config: {
-            ...gameSettings,
-            winePrefix,
-            wineVersion,
-            wineCrossoverBottle: crossoverBottle
-          }
-        })
+        window.api.config.game.set(appName, runner, 'wineVersion', wineVersion)
+        if (wineVersion.type === 'crossover')
+          window.api.config.game.set(
+            appName,
+            runner,
+            'crossoverBottle',
+            crossoverBottle
+          )
+        else
+          window.api.config.game.set(appName, runner, 'winePrefix', winePrefix)
       }
     }
 
@@ -512,9 +499,9 @@ export default function DownloadDialog({
           type="directory"
           onPathChange={setInstallPath}
           path={installPath}
-          placeholder={getDefaultInstallPath()}
+          placeholder={defaultInstallPath}
           pathDialogTitle={t('install.path')}
-          pathDialogDefaultPath={getDefaultInstallPath()}
+          pathDialogDefaultPath={defaultInstallPath}
           htmlId="setinstallpath"
           label={t('install.path', 'Select Install Path')}
           noDeleteButton

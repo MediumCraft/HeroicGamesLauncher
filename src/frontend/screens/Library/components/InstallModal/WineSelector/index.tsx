@@ -7,7 +7,6 @@ import {
 import React from 'react'
 import { WineInstallation } from 'common/types'
 import { useTranslation } from 'react-i18next'
-import { removeSpecialcharacters } from 'frontend/helpers'
 
 type Props = {
   setWineVersion: React.Dispatch<
@@ -40,13 +39,12 @@ export default function WineSelector({
   React.useEffect(() => {
     const getAppSettings = async () => {
       const {
-        defaultWinePrefix: prefixFolder,
         wineVersion,
         winePrefix: defaultPrefix,
-        wineCrossoverBottle: defaultBottle
-      } = await window.api.requestAppSettings()
+        winePrefixBasePath,
+        crossoverBottle: defaultBottle
+      } = await window.api.config.global.get()
 
-      if (!wineVersion || !defaultPrefix || !defaultBottle) return
       setDescription(
         `${defaultPrefix} / ${wineVersion.name.replace('Proton - ', '')}`
       )
@@ -60,11 +58,9 @@ export default function WineSelector({
         setWineVersion(wineVersion)
         setCrossoverBottle(defaultBottle)
       } else {
-        const sugestedWinePrefix = `${prefixFolder}/${removeSpecialcharacters(
-          title
-        )}`
+        const sugestedWinePrefix = `${winePrefixBasePath}/${title}`
         setWinePrefix(sugestedWinePrefix)
-        setWineVersion(wineVersion || undefined)
+        setWineVersion(wineVersion)
       }
     }
     getAppSettings()

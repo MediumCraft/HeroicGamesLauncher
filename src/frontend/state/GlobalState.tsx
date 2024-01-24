@@ -9,9 +9,7 @@ import {
   RefreshOptions,
   Runner,
   WineVersionInfo,
-  InstallParams,
-  LibraryTopSectionOptions,
-  ExperimentalFeatures
+  InstallParams
 } from 'common/types'
 import {
   DialogModalOptions,
@@ -46,7 +44,6 @@ import { IpcRendererEvent } from 'electron'
 import { NileRegisterData } from 'common/types/nile'
 
 const storage: Storage = window.localStorage
-const globalSettings = configStore.get_nodefault('settings')
 
 const RTL_LANGUAGES = ['fa', 'ar']
 
@@ -77,7 +74,6 @@ interface StateProps {
   gameUpdates: string[]
   language: string
   libraryStatus: GameStatus[]
-  libraryTopSection: string
   platform: NodeJS.Platform | 'unknown'
   refreshing: boolean
   refreshingInTheBackground: boolean
@@ -98,7 +94,6 @@ interface StateProps {
   dialogModalOptions: DialogModalOptions
   externalLinkDialogOptions: ExternalLinkDialogOptions
   sideloadedLibrary: GameInfo[]
-  hideChangelogsOnStartup: boolean
   lastChangelogShown: string | null
   settingsModalOpen: {
     value: boolean
@@ -112,7 +107,6 @@ interface StateProps {
     runner: Runner
   }
   helpItems: { [key: string]: HelpItem }
-  experimentalFeatures: ExperimentalFeatures
   disableDialogBackdropClose: boolean
 }
 
@@ -171,7 +165,6 @@ class GlobalState extends PureComponent<Props> {
     gameUpdates: [],
     language: this.props.i18n.language,
     libraryStatus: [],
-    libraryTopSection: globalSettings?.libraryTopSection || 'disabled',
     platform: 'unknown',
     refreshing: false,
     refreshingInTheBackground: true,
@@ -208,15 +201,9 @@ class GlobalState extends PureComponent<Props> {
     sideloadedLibrary: sideloadLibrary.get('games', []),
     dialogModalOptions: { showDialog: false },
     externalLinkDialogOptions: { showDialog: false },
-    hideChangelogsOnStartup: globalSettings?.hideChangelogsOnStartup || false,
     lastChangelogShown: JSON.parse(storage.getItem('last_changelog') || 'null'),
     settingsModalOpen: { value: false, type: 'settings', gameInfo: undefined },
     helpItems: {},
-    experimentalFeatures: globalSettings?.experimentalFeatures || {
-      enableNewDesign: false,
-      enableHelp: false,
-      automaticWinetricksFixes: true
-    },
     disableDialogBackdropClose: configStore.get(
       'disableDialogBackdropClose',
       false
@@ -281,10 +268,6 @@ class GlobalState extends PureComponent<Props> {
 
   setSideBarCollapsed = (value: boolean) => {
     this.setState({ sidebarCollapsed: value })
-  }
-
-  setHideChangelogsOnStartup = (value: boolean) => {
-    this.setState({ hideChangelogsOnStartup: value })
   }
 
   setLastChangelogShown = (value: string) => {
@@ -422,14 +405,6 @@ class GlobalState extends PureComponent<Props> {
 
   handleExternalLinkDialog = (value: ExternalLinkDialogOptions) => {
     this.setState({ externalLinkDialogOptions: value })
-  }
-
-  handleLibraryTopSection = (value: LibraryTopSectionOptions) => {
-    this.setState({ libraryTopSection: value })
-  }
-
-  handleExperimentalFeatures = (value: ExperimentalFeatures) => {
-    this.setState({ experimentalFeatures: value })
   }
 
   handleSuccessfulLogin = (runner: Runner) => {
@@ -893,7 +868,6 @@ class GlobalState extends PureComponent<Props> {
       gameUpdates,
       libraryStatus,
       sidebarCollapsed,
-      hideChangelogsOnStartup,
       lastChangelogShown,
       language
     } = this.state
@@ -903,7 +877,6 @@ class GlobalState extends PureComponent<Props> {
 
     storage.setItem('updates', JSON.stringify(gameUpdates))
     storage.setItem('sidebar_collapsed', JSON.stringify(sidebarCollapsed))
-    storage.setItem('hide_changelogs', JSON.stringify(hideChangelogsOnStartup))
     storage.setItem('last_changelog', JSON.stringify(lastChangelogShown))
 
     const pendingOps = libraryStatus.filter(
@@ -943,7 +916,6 @@ class GlobalState extends PureComponent<Props> {
       customCategories,
       hiddenGames,
       settingsModalOpen,
-      hideChangelogsOnStartup,
       lastChangelogShown,
       libraryStatus
     } = this.state
@@ -1001,8 +973,6 @@ class GlobalState extends PureComponent<Props> {
             addCategory: this.setCustomCategory,
             removeCategory: this.removeCustomCategory
           },
-          handleLibraryTopSection: this.handleLibraryTopSection,
-          handleExperimentalFeatures: this.handleExperimentalFeatures,
           setTheme: this.setTheme,
           setZoomPercent: this.setZoomPercent,
           setAllTilesInColor: this.setAllTilesInColor,
@@ -1012,8 +982,6 @@ class GlobalState extends PureComponent<Props> {
           showDialogModal: this.handleShowDialogModal,
           showResetDialog: this.showResetDialog,
           handleExternalLinkDialog: this.handleExternalLinkDialog,
-          hideChangelogsOnStartup: hideChangelogsOnStartup,
-          setHideChangelogsOnStartup: this.setHideChangelogsOnStartup,
           lastChangelogShown: lastChangelogShown,
           setLastChangelogShown: this.setLastChangelogShown,
           isSettingsModalOpen: settingsModalOpen,

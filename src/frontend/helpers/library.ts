@@ -1,6 +1,5 @@
 import {
   InstallPlatform,
-  AppSettings,
   GameInfo,
   InstallProgress,
   Runner,
@@ -67,8 +66,7 @@ async function install({
   }
 
   if (installPath === 'import') {
-    const { defaultInstallPath }: AppSettings =
-      await window.api.requestAppSettings()
+    const { defaultInstallPath } = await window.api.config.global.get()
     const args: Electron.OpenDialogOptions = {
       buttonLabel: t('gamepage:box.choose'),
       properties:
@@ -96,8 +94,7 @@ async function install({
   }
 
   if (installPath === 'default') {
-    const { defaultInstallPath }: AppSettings =
-      await window.api.requestAppSettings()
+    const { defaultInstallPath } = await window.api.config.global.get()
     installPath = defaultInstallPath
   }
 
@@ -173,7 +170,10 @@ const launch = async ({
   showDialogModal
 }: LaunchOptions): Promise<{ status: 'done' | 'error' | 'abort' }> => {
   if (hasUpdate) {
-    const { ignoreGameUpdates } = await window.api.requestGameSettings(appName)
+    const { ignoreGameUpdates } = await window.api.config.game.get(
+      appName,
+      runner
+    )
 
     if (ignoreGameUpdates) {
       return window.api.launch({

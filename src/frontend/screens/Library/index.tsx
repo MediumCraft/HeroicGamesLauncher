@@ -37,6 +37,7 @@ import { InstallModal } from './components'
 import LibraryContext from './LibraryContext'
 import { Category, PlatformsFilters, StoresFilters } from 'frontend/types'
 import { hasHelp } from 'frontend/hooks/hasHelp'
+import { useGlobalConfig } from 'frontend/hooks/config'
 
 const storage = window.localStorage
 
@@ -59,7 +60,6 @@ export default React.memo(function Library(): JSX.Element {
     amazon,
     sideloadedLibrary,
     favouriteGames,
-    libraryTopSection,
     platform,
     currentCustomCategories,
     customCategories,
@@ -71,6 +71,8 @@ export default React.memo(function Library(): JSX.Element {
     t('help.title.library', 'Library'),
     <p>{t('help.content.library', 'Shows all owned games.')}</p>
   )
+
+  const [libraryTopSection] = useGlobalConfig('libraryTopSection')
 
   const [layout, setLayout] = useState(storage.getItem('layout') || 'grid')
   const handleLayout = (layout: string) => {
@@ -304,7 +306,7 @@ export default React.memo(function Library(): JSX.Element {
   }
 
   // top section
-  const showRecentGames = libraryTopSection.startsWith('recently_played')
+  const showRecentGames = !!libraryTopSection?.startsWith('recently_played')
 
   const favouriteGamesList = useMemo(() => {
     if (showHidden) {
@@ -611,7 +613,7 @@ export default React.memo(function Library(): JSX.Element {
         {showRecentGames && (
           <RecentlyPlayed
             handleModal={handleModal}
-            onlyInstalled={libraryTopSection.endsWith('installed')}
+            onlyInstalled={!!libraryTopSection?.endsWith('installed')}
             showHidden={showHidden}
           />
         )}
