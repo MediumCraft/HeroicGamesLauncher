@@ -5,11 +5,10 @@ import {
   WineCommandArgs,
   ConnectivityChangedCallback,
   ConnectivityStatus,
-  AppSettings,
-  GameSettings,
-  RunWineCommandArgs
+  RunWineCommandArgs,
+  SaveSyncArgs
 } from 'common/types'
-import { GOGCloudSavesLocation } from 'common/types/gog'
+import type { KeyValuePair } from '../schemas'
 
 export const notify = (args: { title: string; body: string }) =>
   ipcRenderer.send('notify', args)
@@ -42,17 +41,13 @@ export const getUserInfo = async () => ipcRenderer.invoke('getUserInfo')
 export const getAmazonUserInfo = async () =>
   ipcRenderer.invoke('getAmazonUserInfo')
 
-export const syncSaves = async (args: {
-  arg: string | undefined
-  path: string
-  appName: string
-  runner: Runner
-}) => ipcRenderer.invoke('syncSaves', args)
+export const syncSaves = async (args: SaveSyncArgs) =>
+  ipcRenderer.invoke('syncSaves', args)
 
 export const getDefaultSavePath = async (
   appName: string,
   runner: Runner,
-  alreadyDefinedGogSaves: GOGCloudSavesLocation[] = []
+  alreadyDefinedGogSaves: KeyValuePair[] = []
 ) =>
   ipcRenderer.invoke(
     'getDefaultSavePath',
