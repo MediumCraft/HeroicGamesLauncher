@@ -16,6 +16,8 @@ interface TextInputFieldProps {
   warning?: ReactNode
   onBlur?: (event: FocusEvent<HTMLInputElement>) => void
   maxLength?: number
+  resetToDefaultValue?: () => void
+  isSetToDefaultValue?: boolean
 }
 
 const TextInputField = ({
@@ -30,9 +32,15 @@ const TextInputField = ({
   afterInput,
   warning,
   onBlur,
-  maxLength
+  maxLength,
+  resetToDefaultValue,
+  isSetToDefaultValue
 }: TextInputFieldProps) => {
   const { isRTL } = useContext(ContextProvider)
+
+  // FIXME: Handle `resetToDefaultValue` and `isSetToDefaultValue` props
+  void resetToDefaultValue
+  void isSetToDefaultValue
 
   return (
     <div
