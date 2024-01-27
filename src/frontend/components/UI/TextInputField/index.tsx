@@ -9,6 +9,7 @@ interface TextInputFieldProps {
   onChange: (event: ChangeEvent<HTMLInputElement>) => void
   inputIcon?: ReactNode
   afterInput?: ReactNode
+  inlineElement?: ReactNode
   label?: string
   placeholder?: string
   disabled?: boolean
@@ -16,8 +17,6 @@ interface TextInputFieldProps {
   warning?: ReactNode
   onBlur?: (event: FocusEvent<HTMLInputElement>) => void
   maxLength?: number
-  resetToDefaultValue?: () => void
-  isSetToDefaultValue?: boolean
 }
 
 const TextInputField = ({
@@ -33,14 +32,9 @@ const TextInputField = ({
   warning,
   onBlur,
   maxLength,
-  resetToDefaultValue,
-  isSetToDefaultValue
+  inlineElement
 }: TextInputFieldProps) => {
   const { isRTL } = useContext(ContextProvider)
-
-  // FIXME: Handle `resetToDefaultValue` and `isSetToDefaultValue` props
-  void resetToDefaultValue
-  void isSetToDefaultValue
 
   return (
     <div
@@ -49,17 +43,20 @@ const TextInputField = ({
       })}
     >
       {label && <label htmlFor={htmlId}>{label}</label>}
-      {inputIcon}
-      <input
-        type="text"
-        id={htmlId}
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        placeholder={placeholder}
-        onBlur={onBlur}
-        maxLength={maxLength}
-      />
+      <div className="inputWrapper">
+        {inputIcon}
+        <input
+          type="text"
+          id={htmlId}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          placeholder={placeholder}
+          onBlur={onBlur}
+          maxLength={maxLength}
+        />
+      </div>
+      <div className="inlineElement">{inlineElement}</div>
       {value && warning}
       {afterInput}
     </div>
