@@ -212,7 +212,7 @@ async function prepareLaunch(
       }
 
       gameScopeCommand.push(
-        ...shlex.split(gameSettings.gamescope.additionalOptions)
+        ...shlex.split(gameSettings.gamescope.additionalOptions ?? '')
       )
 
       // Note: needs to be the last option
