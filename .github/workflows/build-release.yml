@@ -1,7 +1,10 @@
-name: Build Heroic, upload artifacts
+name: Build Heroic
 
 on:
   workflow_call:
+  push:
+    branches:
+      - 'main'
 
 jobs:
   build:
