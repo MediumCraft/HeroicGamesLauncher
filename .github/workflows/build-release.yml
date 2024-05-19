@@ -89,15 +89,21 @@ jobs:
       run: echo "version=$(jq -r '.version' package.json)" >> $GITHUB_ENV
 
     - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
-        name: Heroic ${env.version}
+        name: Heroic ${{ env.version }}
+        tag_name: v${{ env.version }}
         prerelease: true
+        body: |
+          Heroic Actions Build
+          ${{ env.version }}
         files: |
           ./artifacts/linux-AppImage/**
           ./artifacts/win-portable/**
           ./artifacts/mac-x64/**
           ./artifacts/mac-arm64/**
           Heroic-dev.zip
+        token: ${{ secrets.workflowToken }}
+        repository: MediumCraft/HeroicGamesLauncher
       env:
         GITHUB_TOKEN: ${{ secrets.workflowToken }}
