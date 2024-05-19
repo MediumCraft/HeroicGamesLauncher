@@ -1,6 +1,6 @@
 {
     "accessibility": {
-        "actions_font_family_no_default": "Rodzaj czcionki menu akcji (Default: ",
+        "actions_font_family_no_default": "Rodzaj czcionki menu akcji (Domyślna):",
         "all_tiles_in_color": "Pokaż wszystkie tytuły gier w kolorze",
         "content_font_family_no_default": "Rodzaj czcionki zawartości (Default: ",
         "fonts": "Czcionki",
@@ -120,7 +120,8 @@
         },
         "select": {
             "button": "Wybierz",
-            "exe": "Wybierz plik EXE"
+            "exe": "Wybierz plik EXE",
+            "script": "Wybierz skrypt ..."
         },
         "shortcuts": {
             "message": "Skróty zostały stworzone na Pulpicie i w Menu Start",
@@ -151,8 +152,8 @@
             },
             "title": "Ostrzeżenie",
             "wine-change": {
-                "title": "Nie znaleziono wina!",
-                "message": "Nie mogliśmy znaleźć wybranej wersji wina, aby uruchomić ten tytuł ({{selectedWine}}). {{newline}} Znaleźliśmy inny, czy chcesz kontynuować uruchamianie za pomocą {{foundWine}}?"
+                "title": "Nie znaleziono Wine!",
+                "message": "Nie mogliśmy znaleźć wybranej wersji Wine, aby uruchomić ten tytuł ({{selectedWine}}). {{newline}} Znaleźliśmy inny, czy chcesz kontynuować uruchamianie za pomocą {{foundWine}}?"
             },
             "sideload": {
                 "confirmExit": {
@@ -169,7 +170,10 @@
         "wineprefix": "Wybierz folder z prefiksem Wine",
         "yes": "TAK",
         "dontShowAgain": "Nie pokazuj więcej",
-        "choose-nile-binary": "Wybierz plik wykonywalny Nile"
+        "choose-nile-binary": "Wybierz plik wykonywalny Nile",
+        "update": "Aktualizuj",
+        "postpone": "Odłóż",
+        "changelog": "Dziennik zmian"
     },
     "button": {
         "cancel": "Anuluj",
@@ -210,7 +214,7 @@
             "disk": "Dysk",
             "speed": "Prędkość pobierania"
         },
-        "link": "Do pobrania",
+        "link": "Pobieranie",
         "queue": {
             "end-time": "Zakończono o",
             "queue-time": "Rozpoczęto o",
@@ -230,7 +234,8 @@
     "game": {
         "status": "Status",
         "store": "Sklep",
-        "title": "Tytuł Gry"
+        "title": "Tytuł Gry",
+        "modify": "Modyfikuj Instalację"
     },
     "generic": {
         "error": {
@@ -252,7 +257,7 @@
         "show_favourites_only": "Pokaż tylko ulubione",
         "show_hidden": "Pokaż ukryte",
         "store": "Filtruj",
-        "filters": "Filtr",
+        "filters": "Filtry",
         "categories": "Kategorie",
         "no_categories": "Brak własnych kategorii. Dodaj kategorie używając menu każdej gry.",
         "only": "tylko",
@@ -269,7 +274,7 @@
         "dxvk": "DXVK to oparta o Vulkan'a warstwa tłumacząca dla gier opratych o DirectX 9, 10 i 11, włączenie DXVK podnosi ich kompatybilność, lecz może powodować problemy szczególnie w starszych grach.",
         "dxvkfpslimit": "Ustala limit klatek na sekundę dla gier DXVK",
         "esync": "Zadaniem Esync'u jest zmniejszenie bottleneck'a spowodowanego przez Wine, w grach intensywnie wykorzystujących CPU. Włączenie może podnieść wydajność.",
-        "fsync": "Zadaniem Esync'u jest zmniejszenie bottleneck'a spowodowanego przez Wine, w grach intensywnie wykorzystujących CPU. Włączenie może podnieść wydajność, lecz wymaga odpowiedniego wsparcia w kernelu.",
+        "fsync": "Zadaniem Fsync'u jest zmniejszenie bottleneck'a spowodowanego przez Wine, w grach intensywnie wykorzystujących CPU. Włączenie może podnieść wydajność, lecz wymaga odpowiedniego wsparcia w kernelu.",
         "game_language": {
             "fallback": "Zostaw puste, aby używać języka Heroic.",
             "in_game_config": "Nie wszystkie gry wspierają taką konfigurację, niektóre mają wbudowane ustawienia językowe.",
@@ -311,13 +316,14 @@
             "upscaleWidth": "Szerokość (od rozdzielczości) używana przez gamescope. Przyjmuje się proporcje 16:9.",
             "gameHeight": "Wysokość w pikselach (od rozdzielczości) stosowana przez grę. Gamescope zakłada, proporcje ekranu w postaci 16:9.",
             "upscaleHeight": "Wysokość (od rozdzielczości) używana przez gamescope. Przyjmuje się proporcje 16:9.",
-            "fpsLimiter": "Limit klatek na sekundę, który powinien zastosować gamescope. np. 60"
+            "fpsLimiter": "Limit klatek na sekundę, który powinien zastosować gamescope. np. 60",
+            "additionalOptions": "Dodatkowe argumenty polecenia dla gamescope."
         },
         "title": {
             "accessibility": "Ułatwienia dostępu",
             "login": "Login",
             "settings": "Ustawienia",
-            "downloadManager": "Download Manager",
+            "downloadManager": "Menedżer Pobierania",
             "wineManager": "Menedżer Wine",
             "library": "Biblioteka"
         },
@@ -335,7 +341,8 @@
             "downloadManager": "Pokazuje obecne i przeszłe pobrania.",
             "settingsDefault": "Pokazuje wszystkie opcje Heroic i domyślne opcje gier.",
             "wineManager": "Zainstaluj inne wersje Wine, Protona, Crossover, itp."
-        }
+        },
+        "msync": "Zadaniem Msync'u jest zmniejszenie bottleneck'a spowodowanego przez Wine, w grach intensywnie wykorzystujących CPU. Włączenie może podnieść wydajność, lecz wymaga odpowiedniego wsparcia w kernelu."
     },
     "info": {
         "heroic": {
@@ -362,7 +369,7 @@
         "wine-repfix": {
             "message": "Wine wykorzystuje tzw. Prefiks w celu przechowywania aplikacji Windowsowych. Prefiks ten zawiera pliki konfiguracyjne Wine oraz dokładne odwzorowanie hierarchii dysku C:// (głównego dysku w systemie Windows). Tam przechowywane są zapisy gier oraz pliki potrzebne do uruchomienia gry zainstalowane przez winetricks."
         },
-        "wine-path-invalid": "Ścieżka wina jest nieprawidłowa, wybierz inną.",
+        "wine-path-invalid": "Ścieżka Wine jest nieprawidłowa, wybierz inną.",
         "wine-path-none-found": "Nie znaleziono wersji Wine, pobierz ją z Wine Managera"
     },
     "install": {
@@ -392,7 +399,7 @@
         "epic": "Zaloguj do Epic Games",
         "gog": "Zaloguj do GOG",
         "message": "Zaloguj się do swojej platformy. Możesz zalogować się do więcej niż jednej platformy w tym samym czasie.",
-        "amazon": "Logowanie do Amazona",
+        "amazon": "Logowanie do Amazon",
         "old-mac": "Twoja wersja macOS to {{version}}. macOS 12 lub nowszy jest wymagany, aby móc się zalogować."
     },
     "message": {
@@ -495,17 +502,19 @@
             "upscaleWidth": "Szerokość po przeskalowaniu",
             "fullscreen": "Pełen ekran",
             "gameWidth": "Szerokość gry",
-            "interger": "Skalowanie całkowitoliczbowe",
+            "interger": "Integer Upscale",
             "upscaleHeight": "Wysokość po przeskalowaniu",
             "fpsLimiterNoFocus": "Ograniczenie FPS (w tle)",
-            "stretch": "Rozciągnij obraz"
+            "stretch": "Rozciągnij obraz",
+            "additionalOptions": "Dodatkowe Opcje",
+            "windowed": "W oknie"
         }
     },
     "other": {
         "gogdl-version": "Wersja GOGDL: ",
         "legendary-version": "Wersja Legendary: ",
         "weblate": "Pomóż przetłumaczyć Heroic.",
-        "nile-version": "Wersja Nilu: "
+        "nile-version": "Wersja Nile: "
     },
     "Other": "Other",
     "placeholder": {
@@ -652,12 +661,12 @@
         "disable_logs": "Wyłącz dzienniki",
         "showMetalOverlay": "Pokaż nakładkę statystyk",
         "addgamestoapplications": "Automatycznie dodawaj gry do aplikacji",
-        "alt-nile-bin": "Wybierz alternatywny plik binarny Nilu",
-        "autodxvknvapi": "Automatycznie instaluj/Aktualizuj DXVK w prefiksie",
+        "alt-nile-bin": "Wybierz alternatywny plik binarny Nile",
+        "autodxvknvapi": "Automatycznie instaluj/Aktualizuj DXVK-NVAPI w prefiksie",
         "disablePlaytimeSync": "Wyłącz synchronizację czasu gry",
         "experimental_features": {
             "enableNewDesign": "Nowy design",
-            "automaticWinetricksFixes": "Zastosuj znane poprawki Winetricks automatycznie",
+            "automaticWinetricksFixes": "Zastosuj znane poprawki automatycznie",
             "enableHelp": "Element pomocy"
         },
         "frameless-window": {
@@ -671,7 +680,10 @@
             "enableLimiter": "Włącz ograniczenie klatek na sekundę",
             "enableUpscaling": "Włącz skalowanie",
             "missingMsg": "Nie udało się nam znaleźć gamescope na PATH. Zainstaluj je lub/i dodaj do PATH."
-        }
+        },
+        "after-launch-script-path": "Wybierz skrypt do uruchomienia po zakończeniu gry",
+        "before-launch-script-path": "Wybierz skrypt do uruchomienia przed rozpoczęciem gry",
+        "msync": "Włącz Msync"
     },
     "settings": {
         "battlEyeRuntime": {
@@ -749,11 +761,24 @@
         },
         "advanced": {
             "clearCache": {
-                "help8": "Zainstalowane Gry"
+                "help8": "Zainstalowane Gry",
+                "help1": "Ta akcja wyczyści następujące pamięci cache:",
+                "help10": "Konfiguracja Heroic",
+                "help7": "Dane logowania skepu",
+                "help9": "Ustawienia gier",
+                "help2": "Informacje stron trzecich (wyniki, kompatybilność steam, howlongtobeat, pcgaminwiki, applegamingwiki)",
+                "help3": "Informacje biblioteki Legendary (lista gier, informacje dialogu instalacji, informacje o grach)",
+                "help4": "Informacje biblioteki GOG (lista gier, informacje dialogu instalacji, metadane np. wymagania)",
+                "help5": "Informacje biblioteki Amazon (lista gier, informacje dialogu instalacji)",
+                "help6": "To NIE usunie:"
             },
-            "details": "Detale",
+            "details": "Szczegóły",
             "title": {
-                "resetHeroic": "Zresetuj Heroic"
+                "resetHeroic": "Zresetuj Heroic",
+                "clearCache": "Wyczyść Cache"
+            },
+            "resetHeroic": {
+                "help": "Ta akcja usunie wszystkie Ustawienia i pamięci Cache, ale nie usunie twoich Zainstalowanych gier czy informacji logowania Epic. Wersje przenośnie (AppImage, WinPortable, ...) Heroic będą musiały zostać uruchomione ponownie ręcznie."
             }
         }
     },
@@ -830,7 +855,7 @@
         "not_found": "Nie mogliśmy znaleźć dodatkowych informacji."
     },
     "dlc": {
-        "actions": "działania",
+        "actions": "Działania",
         "noDlcFound": "Nie znaleziono DLC",
         "size": "Rozmiar",
         "installDlcs": "Zainstaluj wszystkie DLC",
@@ -861,5 +886,30 @@
         "remove-category": "Usuń Kategorię",
         "add-new-category": "Dodaj Nową Kategorię",
         "new-category": "Nowa Kategoria"
+    },
+    "wineExplanation": {
+        "proton-ge": "Proton-GE-Proton to wersja Proton stworzona przez Glorious Eggroll. Jest przeznaczona do użytku w Steam, lecz niektóre gry spoza Steam mogą działać lepiej przy użyciu tej wersji. W większości zapewnia bezużyteczne dzienniki do rozwiązywania problemów.",
+        "wine-ge": "Wine-GE-Proton to wersja Wine stworzona przez Glorious Eggroll. Jest to rekomendowana wersja Wine do użytku poza Steam. Zapewnia użyteczne dzienniki do rozwiązywania problemów."
+    },
+    "emptyLibrary": {
+        "noResults": "Wybrane filtry nie zwróciły wyników.",
+        "noGames": "Twoja biblioteka jest pusta. Możesz <1>zalogować się</1> przy użyciu sklepu lub kliknąć <3></3> by dodać grę ręcznie."
+    },
+    "categories-manager": {
+        "add-placeholder": "Dodaj Nową Kategorię",
+        "add": "Dodaj",
+        "confirm-rename": "Potwierdź zmianę nazwy \"{{oldName}}\" na \"{{newName}}\"",
+        "cancel-remove": "Anuluj usuwanie \"{{name}}\"",
+        "cancel-rename": "Anuluj zmianę nazwy \"{{name}}\"",
+        "confirm-remove": "Potwierdź usunięcie \"{{name}}\"",
+        "no-categories": "Jeszcze nie ma kategorii.",
+        "remove": "Usuń \"{{name}}\"",
+        "rename": "Zmień nazwę \"{{name}}\"",
+        "title": "Zarządzaj Kategoriami"
+    },
+    "adtraction-locked": {
+        "description": "Wygląda na to, że nie udało się załadować domeny track.adtraction.com lub jest ona zablokowana. Z adtraction, każdy zakup, który wykonujesz za pomocą sklepu GOG wspiera Heroic finansowo. Rozważ odblokowanie, jeżeli chcesz wesprzeć Heroic.",
+        "dont-show-again": "Nie pokazuj więcej tego ostrzeżenia",
+        "title": "Adtraction jest zablokowane"
     }
 }

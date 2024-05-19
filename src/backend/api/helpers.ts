@@ -1,9 +1,8 @@
-import { ipcRenderer, TitleBarOverlayOptions } from 'electron'
+import { ipcRenderer, TitleBarOverlay } from 'electron'
 import {
   Runner,
   InstallPlatform,
   WineCommandArgs,
-  ConnectivityChangedCallback,
   ConnectivityStatus,
   AppSettings,
   GameSettings,
@@ -115,7 +114,13 @@ export const runWineCommandForGame = async (args: RunWineCommandArgs) =>
   ipcRenderer.invoke('runWineCommandForGame', args)
 
 export const onConnectivityChanged = async (
-  callback: ConnectivityChangedCallback
+  callback: (
+    event: Electron.IpcRendererEvent,
+    status: {
+      status: ConnectivityStatus
+      retryIn: number
+    }
+  ) => void
 ) => ipcRenderer.on('connectivity-changed', callback)
 
 export const getConnectivityStatus = async () =>
@@ -135,7 +140,7 @@ export const getThemeCSS = async (theme: string) =>
 
 export const getCustomThemes = async () => ipcRenderer.invoke('getCustomThemes')
 
-export const setTitleBarOverlay = (options: TitleBarOverlayOptions) =>
+export const setTitleBarOverlay = (options: TitleBarOverlay) =>
   ipcRenderer.send('setTitleBarOverlay', options)
 
 export const isGameAvailable = async (args: {

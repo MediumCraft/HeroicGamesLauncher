@@ -2,13 +2,15 @@ import { GameInfo, GameSettings, Runner } from 'common/types'
 import { GameConfig } from '../../game_config'
 import { isMac, isLinux, icon } from '../../constants'
 import {
-  appendGameLog,
+  appendGamePlayLog,
+  appendWinetricksGamePlayLog,
   lastPlayLogFileLocation,
   logInfo,
   LogPrefix,
+  logsDisabled,
   logWarning
 } from '../../logger/logger'
-import { dirname } from 'path'
+import { basename, dirname } from 'path'
 import { constants as FS_CONSTANTS } from 'graceful-fs'
 import i18next from 'i18next'
 import {
@@ -162,7 +164,10 @@ export async function launchGame(
       steamRuntime
     } = await prepareLaunch(gameSettings, gameInfo, isNative)
 
-    if (!isNative) await prepareWineLaunch(runner, appName)
+    if (!isNative) {
+      await prepareWineLaunch(runner, appName)
+      appendWinetricksGamePlayLog(gameInfo)
+    }
 
     const wrappers = setupWrappers(
       gameSettings,
@@ -173,7 +178,7 @@ export async function launchGame(
     )
 
     if (!launchPrepSuccess) {
-      appendGameLog(gameInfo, `Launch aborted: ${launchPrepFailReason}`)
+      appendGamePlayLog(gameInfo, `Launch aborted: ${launchPrepFailReason}`)
       showDialogBoxModalAuto({
         title: i18next.t('box.error.launchAborted', 'Launch aborted'),
         message: launchPrepFailReason!,
@@ -220,7 +225,7 @@ export async function launchGame(
         {
           name: runner,
           logPrefix: LogPrefix.Backend,
-          bin: executable,
+          bin: basename(executable),
           dir: dirname(executable)
         },
         {
@@ -253,7 +258,10 @@ export async function launchGame(
       options: {
         wrappers,
         logFile: lastPlayLogFileLocation(appName),
-        logMessagePrefix: LogPrefix.Backend
+        logMessagePrefix: LogPrefix.Backend,
+        onOutput: (output) => {
+          if (!logsDisabled) appendGamePlayLog(gameInfo, output)
+        }
       }
     })
 

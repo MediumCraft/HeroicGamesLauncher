@@ -158,7 +158,7 @@ export default React.memo(function InstallModal({
       <Dialog
         onClose={backdropClick}
         showCloseButton
-        className={'InstallModal__dialog'}
+        className="InstallModal__dialog"
       >
         {showDownloadDialog ? (
           <DownloadDialog
@@ -175,6 +175,7 @@ export default React.memo(function InstallModal({
             {platformSelection()}
             {hasWine ? (
               <WineSelector
+                appName={appName}
                 winePrefix={winePrefix}
                 wineVersion={wineVersion}
                 wineVersionList={wineVersionList}
@@ -200,6 +201,7 @@ export default React.memo(function InstallModal({
             {platformSelection()}
             {hasWine ? (
               <WineSelector
+                appName={appName}
                 winePrefix={winePrefix}
                 wineVersion={wineVersion}
                 wineVersionList={wineVersionList}

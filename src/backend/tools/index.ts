@@ -1,5 +1,4 @@
 import { ExecResult, GameSettings, Runner, WineCommandArgs } from 'common/types'
-import axios from 'axios'
 
 import {
   existsSync,
@@ -15,6 +14,7 @@ import {
 
 import { spawn } from 'child_process'
 import {
+  axiosClient,
   downloadFile,
   execAsync,
   extractFiles,
@@ -40,7 +40,7 @@ import {
   setupWineEnvVars,
   validWine
 } from '../launcher'
-import { chmod } from 'fs/promises'
+import { chmod, readFile } from 'fs/promises'
 import {
   any_gpu_supports_version,
   get_nvngx_path,
@@ -50,6 +50,10 @@ import { lt as semverLt } from 'semver'
 import { createAbortController } from '../utils/aborthandler/aborthandler'
 import { gameManagerMap } from '../storeManagers'
 import { sendFrontendMessage } from '../main_window'
+import {
+  DAYS,
+  downloadFile as downloadFileInet
+} from '../utils/inet/downloader'
 
 interface Tool {
   name: string
@@ -63,7 +67,7 @@ async function installOrUpdateTool(tool: Tool) {
 
   const {
     data: { assets }
-  } = await axios.get(tool.url)
+  } = await axiosClient.get(tool.url)
 
   const { name, browser_download_url: downloadUrl } = assets[0]
   const latestVersion = name.replace('.tar.gz', '').replace('.tar.xz', '')
@@ -205,6 +209,12 @@ export const DXVK = {
 
     tool = isMac ? 'dxvk-macOS' : tool
 
+    const is64bitPrefix = existsSync(`${winePrefix}/drive_c/windows/syswow64`)
+
+    if (!is64bitPrefix) {
+      logWarning('Installing DXVK on a 32-bit prefix!', LogPrefix.DXVKInstaller)
+    }
+
     if (!existsSync(`${toolsPath}/${tool}/latest_${tool}`)) {
       logWarning('dxvk not found!', LogPrefix.DXVKInstaller)
       await DXVK.getLatest()
@@ -245,23 +255,25 @@ export const DXVK = {
       logInfo('Removing DLL overrides', LogPrefix.DXVKInstaller)
 
       // unregister the dlls on the wine prefix
-      dlls64.forEach(async (dll) => {
-        dll = dll.replace('.dll', '')
-        const unregisterDll = [
-          'reg',
-          'delete',
-          'HKEY_CURRENT_USER\\Software\\Wine\\DllOverrides',
-          '/v',
-          dll,
-          '/f'
-        ]
-        await runWineCommand({
-          gameSettings,
-          commandParts: unregisterDll,
-          wait: true,
-          protonVerb: 'waitforexitandrun'
+      if (is64bitPrefix) {
+        dlls64.forEach(async (dll) => {
+          dll = dll.replace('.dll', '')
+          const unregisterDll = [
+            'reg',
+            'delete',
+            'HKEY_CURRENT_USER\\Software\\Wine\\DllOverrides',
+            '/v',
+            dll,
+            '/f'
+          ]
+          await runWineCommand({
+            gameSettings,
+            commandParts: unregisterDll,
+            wait: true,
+            protonVerb: 'run'
+          })
         })
-      })
+      }
       dlls32.forEach(async (dll) => {
         dll = dll.replace('.dll', '')
         const unregisterDll = [
@@ -276,7 +288,7 @@ export const DXVK = {
           gameSettings,
           commandParts: unregisterDll,
           wait: true,
-          protonVerb: 'waitforexitandrun'
+          protonVerb: 'run'
         })
       })
       return true
@@ -290,11 +302,27 @@ export const DXVK = {
     }
 
     // copy the new dlls to the prefix
-    dlls32.forEach((dll) => {
-      if (!isMac) {
+    if (is64bitPrefix) {
+      dlls32.forEach((dll) => {
+        if (!isMac) {
+          copyFile(
+            `${toolPathx32}/${dll}`,
+            `${winePrefix}/drive_c/windows/syswow64/${dll}`,
+            (err) => {
+              if (err) {
+                logError(
+                  [`Error when copying ${dll}`, err],
+                  LogPrefix.DXVKInstaller
+                )
+              }
+            }
+          )
+        }
+      })
+      dlls64.forEach((dll) => {
         copyFile(
-          `${toolPathx32}/${dll}`,
-          `${winePrefix}/drive_c/windows/syswow64/${dll}`,
+          `${toolPathx64}/${dll}`,
+          `${winePrefix}/drive_c/windows/system32/${dll}`,
           (err) => {
             if (err) {
               logError(
@@ -304,44 +332,49 @@ export const DXVK = {
             }
           }
         )
-      }
-    })
-    dlls64.forEach((dll) => {
-      copyFile(
-        `${toolPathx64}/${dll}`,
-        `${winePrefix}/drive_c/windows/system32/${dll}`,
-        (err) => {
-          if (err) {
-            logError(
-              [`Error when copying ${dll}`, err],
-              LogPrefix.DXVKInstaller
-            )
-          }
+      })
+    } else {
+      dlls32.forEach((dll) => {
+        if (!isMac) {
+          copyFile(
+            `${toolPathx32}/${dll}`,
+            `${winePrefix}/drive_c/windows/system32/${dll}`,
+            (err) => {
+              if (err) {
+                logError(
+                  [`Error when copying ${dll}`, err],
+                  LogPrefix.DXVKInstaller
+                )
+              }
+            }
+          )
         }
-      )
-    })
+      })
+    }
 
     // register dlls on the wine prefix
-    dlls64.forEach(async (dll) => {
-      // remove the .dll extension otherwise will fail
-      dll = dll.replace('.dll', '')
-      const registerDll = [
-        'reg',
-        'add',
-        'HKEY_CURRENT_USER\\Software\\Wine\\DllOverrides',
-        '/v',
-        dll,
-        '/d',
-        'native,builtin',
-        '/f'
-      ]
-      await runWineCommand({
-        gameSettings,
-        commandParts: registerDll,
-        wait: true,
-        protonVerb: 'waitforexitandrun'
+    if (is64bitPrefix) {
+      dlls64.forEach(async (dll) => {
+        // remove the .dll extension otherwise will fail
+        dll = dll.replace('.dll', '')
+        const registerDll = [
+          'reg',
+          'add',
+          'HKEY_CURRENT_USER\\Software\\Wine\\DllOverrides',
+          '/v',
+          dll,
+          '/d',
+          'native,builtin',
+          '/f'
+        ]
+        await runWineCommand({
+          gameSettings,
+          commandParts: registerDll,
+          wait: true,
+          protonVerb: 'run'
+        })
       })
-    })
+    }
     dlls32.forEach(async (dll) => {
       // remove the .dll extension otherwise will fail
       dll = dll.replace('.dll', '')
@@ -359,7 +392,7 @@ export const DXVK = {
         gameSettings,
         commandParts: registerDll,
         wait: true,
-        protonVerb: 'waitforexitandrun'
+        protonVerb: 'run'
       })
     })
 
@@ -398,7 +431,7 @@ export const DXVK = {
             gameSettings,
             commandParts: regModNvngx,
             wait: true,
-            protonVerb: 'waitforexitandrun'
+            protonVerb: 'run'
           })
         } else {
           logWarning(
@@ -443,9 +476,11 @@ export const Winetricks = {
 
     try {
       logInfo('Downloading Winetricks', LogPrefix.WineTricks)
-      const res = await axios.get(url, { timeout: 1000 })
-      const file = res.data
-      writeFileSync(path, file)
+      await downloadFileInet(url, {
+        writeToFile: path,
+        maxCache: 7 * DAYS,
+        axiosConfig: { responseType: 'text' }
+      })
       await chmod(path, 0o755)
       return
     } catch (error) {
@@ -476,32 +511,41 @@ export const Winetricks = {
     }
 
     return new Promise<string[] | null>((resolve) => {
-      const { winePrefix, wineBin } = getWineFromProton(
-        wineVersion,
-        baseWinePrefix
-      )
+      const { winePrefix, wineVersion: alwaysWine_wineVersion } =
+        getWineFromProton(wineVersion, baseWinePrefix)
+      const wineBin = alwaysWine_wineVersion.bin
+      // We have to run Winetricks with an actual `wine` binary, meaning we
+      // might need to set some environment variables differently than normal
+      // (e.g. `WINEESYNC=1` vs `PROTON_NO_ESYNC=0`).
+      // These settings will be a copy of the normal game settings, but with
+      // their wineVersion set to one always of the type `wine`
+      const settingsWithWineVersion = {
+        ...gameSettings,
+        wineVersion: alwaysWine_wineVersion
+      }
 
       const winepath = dirname(wineBin)
 
       const linuxEnvs = {
         ...process.env,
+        ...setupEnvVars(settingsWithWineVersion),
+        ...setupWineEnvVars(settingsWithWineVersion, appName),
         WINEPREFIX: winePrefix,
-        PATH: `${winepath}:${process.env.PATH}`,
-        ...setupEnvVars(gameSettings),
-        ...setupWineEnvVars(gameSettings, appName)
+        PATH: `${winepath}:${process.env.PATH}`
       }
 
       const wineServer = join(winepath, 'wineserver')
 
       const macEnvs = {
         ...process.env,
+        // FIXME: Do we want to use `settingsWithWineVersion` here?
+        ...setupEnvVars(gameSettings),
+        ...setupWineEnvVars(gameSettings, appName),
         WINEPREFIX: winePrefix,
         WINESERVER: wineServer,
         WINE: wineBin,
         WINE64: wineBin,
-        PATH: `/opt/homebrew/bin:${process.env.PATH}`,
-        ...setupEnvVars(gameSettings),
-        ...setupWineEnvVars(gameSettings, appName)
+        PATH: `/opt/homebrew/bin:${process.env.PATH}`
       }
 
       const envs = isMac ? macEnvs : linuxEnvs
@@ -639,28 +683,15 @@ export const Winetricks = {
     }
   },
   listInstalled: async (runner: Runner, appName: string) => {
+    const gameSettings = await gameManagerMap[runner].getSettings(appName)
+    const { winePrefix } = getWineFromProton(
+      gameSettings.wineVersion,
+      gameSettings.winePrefix
+    )
+    const winetricksLogPath = join(winePrefix, 'winetricks.log')
     try {
-      const output = await Winetricks.runWithArgs(
-        runner,
-        appName,
-        ['list-installed'],
-        true
-      )
-      if (!output) {
-        return []
-      } else {
-        // the last element of the result is a new-line separated list of installed components
-        // it can also be a message saying nothing was installed yet
-        const last = output.pop() || ''
-        if (
-          last === '' ||
-          last.match('winetricks has not installed anything')
-        ) {
-          return []
-        } else {
-          return last.split('\n').filter((component) => component.trim() !== '')
-        }
-      }
+      const winetricksLog = await readFile(winetricksLogPath, 'utf8')
+      return winetricksLog.split('\n').filter(Boolean)
     } catch {
       return []
     }

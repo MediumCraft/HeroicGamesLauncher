@@ -72,7 +72,8 @@
         "unhide_game": "Показати гру",
         "uninstall": "Видалити",
         "update": "Оновити",
-        "details": "Детальніше"
+        "details": "Детальніше",
+        "changelog": "Показати список змін"
     },
     "cloud_save_unsupported": "Не підтримується",
     "disabled": "Вимкнено",
@@ -94,11 +95,18 @@
         "totalPlayed": "Зіграно часу",
         "dlcs": "DLCs (завантажуваний вміст)",
         "branch": {
-            "disabled": "Вимкнено"
+            "disabled": "Вимкнено",
+            "select": "Вибрати бета-випуски",
+            "setPrivateBranchPassword": "Задати пароль приватного каналу",
+            "password": "Задати пароль для приватного каналу"
         },
         "builds": {
-            "version": "Версія"
-        }
+            "version": "Версія",
+            "toggle": "Зберегти гру у певній версії",
+            "buildsSelector": "Виберіть версію гри"
+        },
+        "changelogFor": "Журнал змін для {{gameTitle}}",
+        "modify": "Змінити інсталяцію"
     },
     "gamecard": {
         "moving": "Переміщення",
@@ -141,7 +149,8 @@
             "cancel": "Ні",
             "message": "Античит підтримка не працює або в ній відмовлено. Гра не працюватиме. Ви все одно хочете її встановити?",
             "install": "Так (я розумію, що це не спрацює)",
-            "title": "Античит зламано/відмовлено"
+            "title": "Античит зламано/відмовлено",
+            "ok": "Ок"
         },
         "flatpak-path-not-writtable": "Помилка: доступ до пісочниці не надано цим шляхом, відбудеться втрата даних."
     },
@@ -160,7 +169,8 @@
         "launching": "Запуск",
         "ubisoft": "Встановлення Ubisoft Connect",
         "winetricks": "Встановлення пакетів Winetricks",
-        "prerequisites": "Встановлення залежностей"
+        "prerequisites": "Встановлення залежностей",
+        "redist": "Встановлення розповсюджуваних пакетів"
     },
     "launch": {
         "options": "Параметри запуску..."
@@ -178,7 +188,9 @@
     },
     "setting": {
         "use-default-wine-settings": "Використовувати налаштування Wine за замовчуванням",
-        "winecrossoverbottle": "CrossOver Bottle"
+        "winecrossoverbottle": "CrossOver Bottle",
+        "show-wine-settings": "Показати налаштування Wine",
+        "warn-use-default-wine-settings": "Використовуйте цей параметр, лише якщо знаєте, що робите.<br/>Використання одного префікса для кількох ігор може спричинити проблеми, якщо їхні залежності несумісні."
     },
     "sideload": {
         "field": {
@@ -221,7 +233,7 @@
         "uninstalling": "Видалення",
         "updating": "Оновлення гри",
         "playing": "Гра",
-        "moving-files": "Переміщення файлу '{{file}}': {{percent}} ",
+        "moving-files": "Переміщення файлу «{{file}}»: {{percent}}%",
         "syncingSaves": "Синхронізація збережень",
         "launching": "Запуск",
         "ubisoft": "Встановлення Ubisoft",
@@ -230,7 +242,8 @@
         "gog-goodie": "Здається, цю гру неможливо встановити. Перевірте вміст для завантаження на https://gog.com/account",
         "goodie": "Без можливості встановлення",
         "prerequisites": "Встановлення залежностей",
-        "winetricks": "Застосування виправлень Winetricks"
+        "winetricks": "Застосування виправлень Winetricks",
+        "redist": "Встановлення розповсюджуваних пакетів ({{redist}})"
     },
     "submenu": {
         "addShortcut": "Додати ярлик",
@@ -257,5 +270,14 @@
         "title": {
             "gamePage": "Сторінка гри"
         }
+    },
+    "modifyInstall": {
+        "dlcsCollapsible": "DLC",
+        "nodlcs": "Немає доступних DLC",
+        "redMod": {
+            "collapsible": "Інтеграція REDmod",
+            "enable": "Увімкнути моди"
+        },
+        "versionCollapsable": "Версія гри"
     }
 }

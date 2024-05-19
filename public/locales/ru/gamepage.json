@@ -72,7 +72,8 @@
         "unhide_game": "Показать игру",
         "uninstall": "Удалить",
         "update": "Обновить",
-        "details": "Подробности"
+        "details": "Подробности",
+        "changelog": "Показать список изменений"
     },
     "cloud_save_unsupported": "Не поддерживается",
     "disabled": "Выключено",
@@ -94,11 +95,18 @@
         "totalPlayed": "Проведено в игре",
         "dlcs": "DLC",
         "branch": {
-            "disabled": "Отключить"
+            "disabled": "Отключить",
+            "password": "Задать пароль для приватного канала",
+            "select": "Выбрать бета-выпуски",
+            "setPrivateBranchPassword": "Задать пароль приватного канала"
         },
         "builds": {
-            "version": "Версия"
-        }
+            "version": "Версия",
+            "buildsSelector": "Выбрать версию игры",
+            "toggle": "Сохранить игру в определённой версии"
+        },
+        "changelogFor": "Список изменений для {{gameTitle}}",
+        "modify": "Модифицировать установку"
     },
     "gamecard": {
         "moving": "Перемещение",
@@ -141,7 +149,8 @@
             "cancel": "Нет",
             "message": "Поддержка античита сломана или невозможна. Игра не будет работать. Вы всё равно хотите его установить?",
             "install": "Да (я понимаю, что это не сработает)",
-            "title": "Античит сломан/недоступен"
+            "title": "Античит сломан/недоступен",
+            "ok": "ОК"
         },
         "flatpak-path-not-writtable": "Ошибка: доступ к песочнице по этому пути не предоставлен, произойдёт потеря данных."
     },
@@ -160,7 +169,8 @@
         "launching": "Запуск",
         "ubisoft": "Установка Ubisoft Connect",
         "winetricks": "Установка пакетов Winetricks",
-        "prerequisites": "Установка требуемых компонентов"
+        "prerequisites": "Установка требуемых компонентов",
+        "redist": "Установка распространяемых файлов"
     },
     "launch": {
         "options": "Параметры запуска..."
@@ -178,7 +188,9 @@
     },
     "setting": {
         "use-default-wine-settings": "Использовать настройки Wine по умолчанию",
-        "winecrossoverbottle": "Бутылка CrossOver"
+        "winecrossoverbottle": "Бутылка CrossOver",
+        "show-wine-settings": "Показать настройки Wine",
+        "warn-use-default-wine-settings": "Используйте эту опцию только в том случае, если вы знаете, что делаете.<br/>Использование одного и того же префикса для нескольких игр может вызвать проблемы, если их зависимости несовместимы."
     },
     "sideload": {
         "field": {
@@ -230,7 +242,8 @@
         "gog-goodie": "Кажется, эту игру нельзя установить. Проверьте загружаемый контент на https://gog.com/account",
         "goodie": "Не устанавливается",
         "prerequisites": "Установка требуемых компонентов",
-        "winetricks": "Применение исправлений Winetricks"
+        "winetricks": "Применение исправлений Winetricks",
+        "redist": "Установка распространяемых файлов ({{redist}})"
     },
     "submenu": {
         "addShortcut": "Создать ярлык",
@@ -257,5 +270,14 @@
         "title": {
             "gamePage": "Страница игры"
         }
+    },
+    "modifyInstall": {
+        "dlcsCollapsible": "DLC",
+        "nodlcs": "Нет доступных DLC",
+        "redMod": {
+            "collapsible": "Интеграция REDmod",
+            "enable": "Включить моды"
+        },
+        "versionCollapsable": "Версия игры"
     }
 }

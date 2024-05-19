@@ -162,7 +162,8 @@
         "wineprefix": "Selecteer een Wine Prefix Folder",
         "yes": "JA",
         "dontShowAgain": "Niet meer laten zien",
-        "choose-nile-binary": "Selecteer Nijl binair"
+        "choose-nile-binary": "Selecteer Nijl binair",
+        "update": "Update"
     },
     "button": {
         "cancel": "Cancel",
@@ -295,7 +296,8 @@
             "downloadManager": "Download Manager",
             "wineManager": "Wine Manager",
             "library": "Bibliotheek"
-        }
+        },
+        "msync": "Fsync aims to reduce wineserver overhead in CPU-intensive games. Enabling may improve performance on supported Linux kernels."
     },
     "info": {
         "heroic": {
@@ -490,7 +492,7 @@
         "alt-legendary-bin": "Kies een Alternatief Legendary Binary",
         "autodxvk": "Automatisch installeren/updated van DXVK op Prefix",
         "autosync": "Automatisch Synchroniseren van saves",
-        "autovkd3d": "Auto Install/Update VKD3D on Prefix",
+        "autovkd3d": "Automatisch installeren/updated van VKD3D op Prefix",
         "change-target-exe": "Selecteer een alternatieve EXE om uit te voeren",
         "checkForUpdatesOnStartup": "Check for Heroic Updates on Startup",
         "crossover-version": "Crossover/Wine Version",
@@ -594,7 +596,8 @@
         "addgamestoapplications": "Voeg automatisch games toe aan applicaties",
         "showMetalOverlay": "Statistieken-overlay weergeven",
         "alt-nile-bin": "Kies een alternatief Nijlbinair getal",
-        "autodxvknvapi": "Automatisch installeren/updated van DXVK/VKD3D op Prefix"
+        "autodxvknvapi": "Automatisch installeren/updated van DXVK-NVAPI op Prefix",
+        "msync": "Esync inschakelen"
     },
     "settings": {
         "battlEyeRuntime": {
@@ -639,10 +642,14 @@
         },
         "advanced": {
             "clearCache": {
-                "help8": "Installed Games"
+                "help8": "Installed Games",
+                "help9": "Game settings"
             },
             "title": {
                 "resetHeroic": "Reset Heroic"
+            },
+            "resetHeroic": {
+                "help": "Are you sure you want to reset Heroic? This will remove all Settings and Caching but won't remove your Installed games or your Epic credentials. Portable versions (AppImage, WinPortable, ...) of heroic needs to be restarted manually afterwards."
             }
         }
     },

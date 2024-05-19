@@ -9,7 +9,6 @@ import {
   RefreshOptions,
   Runner,
   WineVersionInfo,
-  InstallParams,
   LibraryTopSectionOptions,
   ExperimentalFeatures
 } from 'common/types'
@@ -86,6 +85,7 @@ interface StateProps {
   primaryFontFamily: string
   secondaryFontFamily: string
   allTilesInColor: boolean
+  titlesAlwaysVisible: boolean
   sidebarCollapsed: boolean
   activeController: string
   connectivity: { status: ConnectivityStatus; retryIn: number }
@@ -191,6 +191,7 @@ class GlobalState extends PureComponent<Props> {
         '--default-primary-font-family'
       ),
     allTilesInColor: configStore.get('allTilesInColor', false),
+    titlesAlwaysVisible: configStore.get('titlesAlwaysVisible', false),
     activeController: '',
     connectivity: { status: 'offline', retryIn: 0 },
     showInstallModal: {
@@ -268,6 +269,11 @@ class GlobalState extends PureComponent<Props> {
     this.setState({ allTilesInColor: value })
   }
 
+  setTitlesAlwaysVisible = (value: boolean) => {
+    configStore.set('titlesAlwaysVisible', value)
+    this.setState({ titlesAlwaysVisible: value })
+  }
+
   setDisableDialogBackdropClose = (value: boolean) => {
     configStore.set('disableDialogBackdropClose', value)
     this.setState({ disableDialogBackdropClose: value })
@@ -334,7 +340,7 @@ class GlobalState extends PureComponent<Props> {
   }
 
   getCustomCategories = () =>
-    Array.from(new Set(Object.keys(this.state.customCategories)))
+    Array.from(new Set(Object.keys(this.state.customCategories))).sort()
 
   setCustomCategory = (newCategory: string) => {
     const newCustomCategories = this.state.customCategories
@@ -356,10 +362,27 @@ class GlobalState extends PureComponent<Props> {
 
   removeCustomCategory = (category: string) => {
     if (!this.state.customCategories[category]) return
+
     const newCustomCategories = this.state.customCategories
     delete newCustomCategories[category]
-    this.setState({ customCategories: newCustomCategories })
+
+    this.setState({ customCategories: { ...newCustomCategories } })
     configStore.set('games.customCategories', newCustomCategories)
+  }
+
+  renameCustomCategory = (oldName: string, newName: string) => {
+    if (!this.state.customCategories[oldName]) return
+
+    const newCustomCategories = this.state.customCategories
+    newCustomCategories[newName] = newCustomCategories[oldName]
+    delete newCustomCategories[oldName]
+
+    this.setState({ customCategories: { ...newCustomCategories } })
+    configStore.set('games.customCategories', newCustomCategories)
+
+    const newCurrentCustomCategories =
+      this.state.currentCustomCategories.filter((cat) => cat !== oldName)
+    this.setCurrentCustomCategories([...newCurrentCustomCategories, newName])
   }
 
   addGameToCustomCategory = (category: string, appName: string) => {
@@ -740,16 +763,15 @@ class GlobalState extends PureComponent<Props> {
         })
       }
 
-      if (runner !== 'gog') {
-        this.refreshLibrary({ runInBackground: true, library: runner })
-      }
+      this.refreshLibrary({ runInBackground: true, library: runner })
+
       this.setState({ libraryStatus: newLibraryStatus })
     }
   }
 
   async componentDidMount() {
     const { t } = this.props
-    const { epic, gameUpdates = [], libraryStatus } = this.state
+    const { epic, gog, amazon, gameUpdates = [], libraryStatus } = this.state
 
     // Deals launching from protocol. Also checks if the game is already running
     window.api.handleLaunchGame(
@@ -774,44 +796,37 @@ class GlobalState extends PureComponent<Props> {
       }
     )
 
-    window.api.handleInstallGame(
-      async (e: IpcRendererEvent, args: InstallParams) => {
-        const currentApp = libraryStatus.filter(
-          (game) => game.appName === appName
-        )[0]
-        const { appName, runner } = args
-        if (!currentApp || (currentApp && currentApp.status !== 'installing')) {
-          const gameInfo = await getGameInfo(appName, runner)
-          if (!gameInfo || gameInfo.runner === 'sideload') {
-            return
-          }
-          return this.setState({
-            showInstallModal: {
-              show: true,
-              appName,
-              runner,
-              gameInfo
-            }
-          })
+    window.api.handleInstallGame(async (e, appName, runner) => {
+      const currentApp = libraryStatus.filter(
+        (game) => game.appName === appName
+      )[0]
+      if (!currentApp || (currentApp && currentApp.status !== 'installing')) {
+        const gameInfo = await getGameInfo(appName, runner)
+        if (!gameInfo || gameInfo.runner === 'sideload') {
+          return
         }
-      }
-    )
-
-    window.api.handleGameStatus(
-      async (e: IpcRendererEvent, args: GameStatus) => {
-        return this.handleGameStatus({ ...args })
-      }
-    )
-
-    window.api.handleRefreshLibrary(
-      async (e: IpcRendererEvent, runner: Runner) => {
-        this.refreshLibrary({
-          checkForUpdates: false,
-          runInBackground: true,
-          library: runner
+        return this.setState({
+          showInstallModal: {
+            show: true,
+            appName,
+            runner,
+            gameInfo
+          }
         })
       }
-    )
+    })
+
+    window.api.handleGameStatus((e, args) => {
+      this.handleGameStatus({ ...args })
+    })
+
+    window.api.handleRefreshLibrary((e, runner) => {
+      this.refreshLibrary({
+        checkForUpdates: false,
+        runInBackground: true,
+        library: runner
+      })
+    })
 
     window.api.handleGamePush((e: IpcRendererEvent, args: GameInfo) => {
       if (!args.app_name) return
@@ -864,7 +879,10 @@ class GlobalState extends PureComponent<Props> {
     if (legendaryUser || gogUser || amazonUser) {
       this.refreshLibrary({
         checkForUpdates: true,
-        runInBackground: Boolean(epic.library?.length)
+        runInBackground:
+          epic.library.length !== 0 ||
+          gog.library.length !== 0 ||
+          amazon.library.length !== 0
       })
     }
 
@@ -1002,13 +1020,15 @@ class GlobalState extends PureComponent<Props> {
             addToGame: this.addGameToCustomCategory,
             removeFromGame: this.removeGameFromCustomCategory,
             addCategory: this.setCustomCategory,
-            removeCategory: this.removeCustomCategory
+            removeCategory: this.removeCustomCategory,
+            renameCategory: this.renameCustomCategory
           },
           handleLibraryTopSection: this.handleLibraryTopSection,
           handleExperimentalFeatures: this.handleExperimentalFeatures,
           setTheme: this.setTheme,
           setZoomPercent: this.setZoomPercent,
           setAllTilesInColor: this.setAllTilesInColor,
+          setTitlesAlwaysVisible: this.setTitlesAlwaysVisible,
           setSideBarCollapsed: this.setSideBarCollapsed,
           setPrimaryFontFamily: this.setPrimaryFontFamily,
           setSecondaryFontFamily: this.setSecondaryFontFamily,

@@ -61,7 +61,8 @@ const initialContext: ContextType = {
     addToGame: () => null,
     removeFromGame: () => null,
     addCategory: () => null,
-    removeCategory: () => null
+    removeCategory: () => null,
+    renameCategory: () => null
   },
   theme: 'midnightMirage',
   setTheme: () => null,
@@ -69,6 +70,8 @@ const initialContext: ContextType = {
   setZoomPercent: () => null,
   allTilesInColor: false,
   setAllTilesInColor: () => null,
+  titlesAlwaysVisible: false,
+  setTitlesAlwaysVisible: () => null,
   sidebarCollapsed: false,
   setSideBarCollapsed: () => null,
   activeController: '',

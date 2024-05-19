@@ -9,8 +9,8 @@ import {
 } from 'common/types'
 import { NileRegisterData } from 'common/types/nile'
 
-export const clearCache = (showDialog?: boolean) =>
-  ipcRenderer.send('clearCache', showDialog)
+export const clearCache = (showDialog?: boolean, fromVersionChange?: boolean) =>
+  ipcRenderer.send('clearCache', showDialog, fromVersionChange)
 export const resetHeroic = () => ipcRenderer.send('resetHeroic')
 
 export const openWeblate = () => ipcRenderer.send('openWeblate')
@@ -127,8 +127,9 @@ export const pathExists = async (path: string) =>
 export const processShortcut = async (combination: string) =>
   ipcRenderer.send('processShortcut', combination)
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const handleGoToScreen = (callback: any) => {
+export const handleGoToScreen = (
+  callback: (e: Electron.IpcRendererEvent, screen: string) => void
+) => {
   ipcRenderer.on('openScreen', callback)
   return () => {
     ipcRenderer.removeListener('openScreen', callback)

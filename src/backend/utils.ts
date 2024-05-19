@@ -7,11 +7,10 @@ import {
   Release,
   GameInfo,
   GameSettings,
-  State,
-  ProgressInfo,
   GameStatus
 } from 'common/types'
 import axios from 'axios'
+import https from 'node:https'
 import { app, dialog, shell, Notification, BrowserWindow } from 'electron'
 import {
   exec,
@@ -39,7 +38,7 @@ import {
   isSnap
 } from './constants'
 import {
-  appendGameLog,
+  appendGamePlayLog,
   logError,
   logInfo,
   LogPrefix,
@@ -75,7 +74,7 @@ import {
   updateWineVersionInfos,
   wineDownloaderInfoStore
 } from './wine/manager/utils'
-import { readdir, stat } from 'fs/promises'
+import { readdir, lstat } from 'fs/promises'
 import { getHeroicVersion } from './utils/systeminfo/heroicVersion'
 import { backendEvents } from './backend_events'
 import { wikiGameInfoStore } from './wiki_game_info/electronStore'
@@ -84,6 +83,11 @@ import EasyDl from 'easydl'
 import decompress from '@xhmikosr/decompress'
 import decompressTargz from '@xhmikosr/decompress-targz'
 import decompressTarxz from '@felipecrs/decompress-tarxz'
+import {
+  deviceNameCache,
+  vendorNameCache
+} from './utils/systeminfo/gpu/pci_ids'
+import type { WineManagerStatus } from 'common/types'
 
 const execAsync = promisify(exec)
 
@@ -141,9 +145,9 @@ const getFileSize = fileSize.partial({ base: 2 }) as (arg: unknown) => string
 function getWineFromProton(
   wineVersion: WineInstallation,
   winePrefix: string
-): { winePrefix: string; wineBin: string } {
+): { winePrefix: string; wineVersion: WineInstallation } {
   if (wineVersion.type !== 'proton') {
-    return { winePrefix, wineBin: wineVersion.bin }
+    return { winePrefix, wineVersion }
   }
 
   winePrefix = join(winePrefix, 'pfx')
@@ -152,8 +156,17 @@ function getWineFromProton(
   for (const distPath of ['dist', 'files']) {
     const protonBaseDir = dirname(wineVersion.bin)
     const wineBin = join(protonBaseDir, distPath, 'bin', 'wine')
-    if (existsSync(wineBin)) {
-      return { wineBin, winePrefix }
+    if (!existsSync(wineBin)) continue
+
+    const wineserverBin = join(protonBaseDir, distPath, 'bin', 'wineserver')
+    return {
+      winePrefix,
+      wineVersion: {
+        ...wineVersion,
+        type: 'wine',
+        bin: wineBin,
+        wineserver: existsSync(wineserverBin) ? wineserverBin : undefined
+      }
     }
   }
 
@@ -166,7 +179,7 @@ function getWineFromProton(
     LogPrefix.Backend
   )
 
-  return { wineBin: '', winePrefix }
+  return { wineVersion, winePrefix }
 }
 
 async function isEpicServiceOffline(
@@ -185,7 +198,7 @@ async function isEpicServiceOffline(
   })
 
   try {
-    const { data } = await axios.get(epicStatusApi)
+    const { data } = await axiosClient.get(epicStatusApi)
 
     for (const component of data.components) {
       const { name: name, status: indicator } = component
@@ -367,7 +380,10 @@ async function openUrlOrFile(url: string): Promise<string | void> {
   return shell.openPath(url)
 }
 
-function clearCache(library?: 'gog' | 'legendary' | 'nile') {
+function clearCache(
+  library?: 'gog' | 'legendary' | 'nile',
+  fromVersionChange = false
+) {
   wikiGameInfoStore.clear()
   if (library === 'gog' || !library) {
     GOGapiInfoCache.clear()
@@ -386,6 +402,11 @@ function clearCache(library?: 'gog' | 'legendary' | 'nile') {
   if (library === 'nile' || !library) {
     nileInstallStore.clear()
     nileLibraryStore.clear()
+  }
+
+  if (!fromVersionChange) {
+    deviceNameCache.clear()
+    vendorNameCache.clear()
   }
 }
 
@@ -416,12 +437,7 @@ function showItemInFolder(item: string) {
 
 function splitPathAndName(fullPath: string): { dir: string; bin: string } {
   const dir = dirname(fullPath)
-  let bin = basename(fullPath)
-  // On Windows, you can just launch executables that are in the current working directory
-  // On Linux, you have to add a ./
-  if (!isWindows) {
-    bin = './' + bin
-  }
+  const bin = basename(fullPath)
   // Make sure to always return this as `dir, bin` to not break path
   // resolution when using `join(...Object.values(...))`
   return { dir, bin }
@@ -519,15 +535,32 @@ async function getSteamRuntime(
   return allAvailableRuntimes.pop()!
 }
 
-function constructAndUpdateRPC(gameName: string): RpcClient {
+function constructAndUpdateRPC(gameInfo: GameInfo): RpcClient {
   const client = makeClient('852942976564723722')
+  const versionText = `Heroic ${app.getVersion()}`
+
+  const image = gameInfo.art_icon || gameInfo.art_square
+  const title = gameInfo.title
+
+  const overrides = image.startsWith('http')
+    ? {
+        largeImageKey: image,
+        smallImageKey: 'icon_new',
+        largeImageText: title,
+        smallImageText: versionText
+      }
+    : {
+        largeImageKey: 'icon_new',
+        largeImageText: versionText
+      }
+
   client.updatePresence({
-    details: gameName,
+    details: title,
     instance: true,
-    largeImageKey: 'icon_new',
-    large_text: gameName,
+    large_text: title,
     startTimestamp: Date.now(),
-    state: 'via Heroic on ' + getFormattedOsName()
+    state: 'via Heroic on ' + getFormattedOsName(),
+    ...overrides
   })
   logInfo('Started Discord Rich Presence', LogPrefix.Backend)
   return client
@@ -672,24 +705,12 @@ function detectVCRedist(mainWindow: BrowserWindow) {
   })
 }
 
-function getFirstExistingParentPath(directoryPath: string): string {
-  let parentDirectoryPath = directoryPath
-  let parentDirectoryFound = existsSync(parentDirectoryPath)
-
-  while (!parentDirectoryFound) {
-    parentDirectoryPath = normalize(parentDirectoryPath + '/..')
-    parentDirectoryFound = existsSync(parentDirectoryPath)
-  }
-
-  return parentDirectoryPath !== '.' ? parentDirectoryPath : ''
-}
-
 const getLatestReleases = async (): Promise<Release[]> => {
   const newReleases: Release[] = []
   logInfo('Checking for new Heroic Updates', LogPrefix.Backend)
 
   try {
-    const { data: releases } = await axios.get(GITHUB_API)
+    const { data: releases } = await axiosClient.get(GITHUB_API)
     const latestStable: Release = releases.filter(
       (rel: Release) => rel.prerelease === false
     )[0]
@@ -735,7 +756,9 @@ const getCurrentChangelog = async (): Promise<Release | null> => {
   try {
     const current = app.getVersion()
 
-    const { data: release } = await axios.get(`${GITHUB_API}/tags/v${current}`)
+    const { data: release } = await axiosClient.get(
+      `${GITHUB_API}/tags/v${current}`
+    )
 
     return release as Release
   } catch (error) {
@@ -858,7 +881,10 @@ export async function downloadDefaultWine() {
   // use Wine-GE type if on Linux and Wine-Crossover if on Mac
   const release = availableWine.filter((version) => {
     if (isLinux) {
-      return version.version.includes('Wine-GE-Proton')
+      return (
+        version.version.includes('Wine-GE-Proton') &&
+        !version.version.endsWith('-LoL')
+      )
     } else if (isMac) {
       return version.version.includes('Wine-Crossover')
     }
@@ -871,11 +897,8 @@ export async function downloadDefaultWine() {
   }
 
   // download the latest version
-  const onProgress = (state: State, progress?: ProgressInfo) => {
-    sendFrontendMessage('progressOfWineManager' + release.version, {
-      state,
-      progress
-    })
+  const onProgress = (state: WineManagerStatus) => {
+    sendFrontendMessage('progressOfWineManager', release.version, state)
   }
   const result = await installWineVersion(release, onProgress)
 
@@ -913,9 +936,9 @@ export async function checkWineBeforeLaunch(
         LogPrefix.Backend
       )
 
-      appendGameLog(
+      appendGamePlayLog(
         gameInfo,
-        `Wine version ${gameSettings.wineVersion.name} is not valid, trying another one.`
+        `Wine version ${gameSettings.wineVersion.name} is not valid, trying another one.\n`
       )
     }
 
@@ -930,6 +953,10 @@ export async function checkWineBeforeLaunch(
 
       if (response === 0) {
         logInfo(`Changing wine version to ${defaultwine.name}`)
+        appendGamePlayLog(
+          gameInfo,
+          `Changing wine version to ${defaultwine.name}\n`
+        )
         gameSettings.wineVersion = defaultwine
         GameConfig.get(gameInfo.app_name).setSetting('wineVersion', defaultwine)
         return true
@@ -998,41 +1025,33 @@ export async function moveOnWindows(
   newInstallPath = join(newInstallPath, basename(install_path))
 
   let currentFile = ''
-  let currentPercent = ''
 
   // move using robocopy and show progress of the current file being copied
   const { code, stderr } = await spawnAsync(
     'robocopy',
-    [install_path, newInstallPath, '/MOVE', '/MIR'],
+    [install_path, newInstallPath, '/MOVE', '/MIR', '/NJH', '/NJS', '/NDL'],
     { stdio: 'pipe' },
     (data) => {
-      data = data.replaceAll(/\s/g, ' ')
+      let percent = 0
+      const percentMatch = data.match(/(\d+)(?:\.\d+)?%/)?.[1]
+      if (percentMatch) percent = Number(percentMatch)
 
-      const match = data.split(' ').filter(Boolean)
-      // current percentage
-      const percent = match.filter((m) => m.includes('%'))[0]
-      // current file
-      const file = match[match.length - 1]
-      if (percent) {
-        currentPercent = percent
-      }
+      const filenameMatch = data.match(/([\w.:\\]+)$/)?.[1]
+      if (filenameMatch) currentFile = filenameMatch
 
-      if (file && file.includes('.') && !file.includes('%')) {
-        currentPercent = '0%'
-        currentFile = file
-      }
-
-      if (match) {
-        sendFrontendMessage(`progressUpdate-${gameInfo.app_name}`, {
-          appName: gameInfo.app_name,
-          runner: gameInfo.runner,
-          status: 'moving',
-          progress: {
-            percent: currentPercent,
-            file: currentFile
-          }
-        })
-      }
+      sendFrontendMessage(`progressUpdate-${gameInfo.app_name}`, {
+        appName: gameInfo.app_name,
+        runner: gameInfo.runner,
+        status: 'moving',
+        progress: {
+          percent,
+          file: currentFile,
+          // FIXME: Robocopy does not report bytes moved / an ETA, so we have to
+          //        leave these blank for now
+          bytes: '',
+          eta: ''
+        }
+      })
     }
   )
   if (code !== 0) {
@@ -1060,7 +1079,6 @@ export async function moveOnUnix(
   const destination = join(newInstallPath, basename(install_path))
 
   let currentFile = ''
-  let currentPercent = ''
 
   let rsyncExists = false
   try {
@@ -1072,38 +1090,72 @@ export async function moveOnUnix(
   if (rsyncExists) {
     const origin = install_path + '/'
     logInfo(
-      `moving command: rsync -az --progress ${origin} ${destination} `,
+      `moving command: rsync --archive --compress --no-human-readable --remove-source-files --info=name,progress ${origin} ${destination} `,
       LogPrefix.Backend
     )
     const { code, stderr } = await spawnAsync(
       'rsync',
-      ['-az', '--progress', origin, destination],
+      [
+        '--archive',
+        '--compress',
+        '--no-human-readable',
+        '--remove-source-files',
+        '--info=name,progress',
+        origin,
+        destination
+      ],
       { stdio: 'pipe' },
       (data) => {
-        const split =
-          data
-            .split('\n')
-            .find((d) => d.includes('/') && !d.includes('%'))
-            ?.split('/') || []
-        const file = split.at(-1) || ''
+        let percent = 0
+        let eta = ''
+        let bytes = '0'
 
-        if (file) {
-          currentFile = file
+        // Multiple output lines might be buffered into a single `data`, so
+        // we have to iterate over every line (we can't just look at the last
+        // one since that might skip new files)
+        for (const outLine of data.trim().split('\n')) {
+          // Rsync outputs either the file currently being transferred or a
+          // progress report. To know which one of those `outLine` is, we check
+          // if it includes a %, :, and starts with a space
+          // If all of these aren't the case, it's *most likely* a filename
+          // FIXME: This is pretty hacky, but I don't see an obvious way to
+          //        "divide" the two output types other than that
+          const isFilenameOutput =
+            !outLine.includes('%') &&
+            !outLine.includes(':') &&
+            !outLine.startsWith(' ')
+
+          if (isFilenameOutput) {
+            // If we have a filename output, set `lastFile` and reset all
+            // other metrics. Either there'll be a progress update in the next
+            // line of `data`, or we've just started copying and thus start at 0
+            currentFile = outLine
+            percent = 0
+            eta = ''
+            bytes = '0'
+          } else {
+            // If we got the progress update, try to read out the bytes, ETA and
+            // percent
+            const bytesMatch = outLine.match(/^\s+(\d+)/)?.[1]
+            const etaMatch = outLine.match(/(\d+:\d{2}:\d{2})/)?.[1]
+            const percentMatch = outLine.match(/(\d+)%/)?.[1]
+            if (bytesMatch) bytes = getFileSize(Number(bytesMatch))
+            if (etaMatch) eta = etaMatch
+            if (percentMatch) percent = Number(percentMatch)
+          }
         }
 
-        const percent = data.match(/(\d+)%/)
-        if (percent) {
-          currentPercent = percent[0]
-          sendFrontendMessage(`progressUpdate-${gameInfo.app_name}`, {
-            appName: gameInfo.app_name,
-            runner: gameInfo.runner,
-            status: 'moving',
-            progress: {
-              percent: currentPercent,
-              file: currentFile
-            }
-          })
-        }
+        sendFrontendMessage(`progressUpdate-${gameInfo.app_name}`, {
+          appName: gameInfo.app_name,
+          runner: gameInfo.runner,
+          status: 'moving',
+          progress: {
+            percent,
+            eta,
+            bytes,
+            file: currentFile
+          }
+        })
       }
     )
     if (code !== 1) {
@@ -1173,8 +1225,11 @@ function removeFolder(path: string, folderName: string) {
 }
 
 async function getPathDiskSize(path: string): Promise<number> {
-  const statData = await stat(path)
+  const statData = await lstat(path)
   let size = 0
+  if (statData.isSymbolicLink()) {
+    return 0
+  }
   if (statData.isDirectory()) {
     const contents = await readdir(path)
 
@@ -1212,6 +1267,7 @@ interface DownloadArgs {
   dest: string
   abortSignal?: AbortSignal
   progressCallback?: ProgressCallback
+  ignoreFailure?: boolean
 }
 
 /**
@@ -1220,6 +1276,7 @@ interface DownloadArgs {
  * @param {string} dest - The destination path to save the downloaded file.
  * @param {AbortSignal} abortSignal - The AbortSignal instance to cancel the download.
  * @param {ProgressCallback} [progressCallback] - An optional callback function to track the download progress.
+ * @param {boolean} ignoreFailure - When "true", failure to download the file is ignore (no log and no thrown error).
  * @returns {Promise<void>} - A Promise that resolves when the download is complete.
  * @throws {Error} - If the download fails or is incomplete.
  */
@@ -1227,7 +1284,8 @@ export async function downloadFile({
   url,
   dest,
   abortSignal,
-  progressCallback
+  progressCallback,
+  ignoreFailure
 }: DownloadArgs): Promise<void> {
   let lastProgressUpdateTime = Date.now()
   let lastBytesWritten = 0
@@ -1235,14 +1293,18 @@ export async function downloadFile({
 
   const connections = 5
   try {
-    const response = await axios.head(url)
+    const response = await axiosClient.head(url)
     fileSize = parseInt(response.headers['content-length'], 10)
   } catch (err) {
-    logError(
-      `Downloader: Failed to get headers for ${url}. \nError: ${err}`,
-      LogPrefix.DownloadManager
-    )
-    throw new Error('Failed to get headers')
+    if (!ignoreFailure) {
+      logError(
+        `Downloader: Failed to get headers for ${url}. \nError: ${err}`,
+        LogPrefix.DownloadManager
+      )
+      throw new Error('Failed to get headers')
+    } else {
+      return
+    }
   }
 
   try {
@@ -1314,11 +1376,15 @@ export async function downloadFile({
       LogPrefix.DownloadManager
     )
   } catch (err) {
-    logError(
-      `Downloader: Download Failed with: ${err}`,
-      LogPrefix.DownloadManager
-    )
-    throw new Error(`Download failed with ${err}`)
+    if (!ignoreFailure) {
+      logError(
+        `Downloader: Download Failed with: ${err}`,
+        LogPrefix.DownloadManager
+      )
+      throw new Error(`Download failed with ${err}`)
+    } else {
+      return
+    }
   }
 }
 
@@ -1436,6 +1502,11 @@ async function extractDecompress(
   }
 }
 
+const axiosClient = axios.create({
+  timeout: 10 * 1000,
+  httpsAgent: new https.Agent({ keepAlive: true })
+})
+
 export {
   errorHandler,
   execAsync,
@@ -1461,7 +1532,6 @@ export {
   shutdownWine,
   getInfo,
   getShellPath,
-  getFirstExistingParentPath,
   getLatestReleases,
   getWineFromProton,
   getFileSize,
@@ -1471,7 +1541,8 @@ export {
   sendGameStatusUpdate,
   sendProgressUpdate,
   calculateEta,
-  extractFiles
+  extractFiles,
+  axiosClient
 }
 
 // Exported only for testing purpose

@@ -72,7 +72,8 @@
         "unhide_game": "Spiel einblenden",
         "uninstall": "Deinstallieren",
         "update": "Aktualisieren",
-        "details": "Informationen"
+        "details": "Informationen",
+        "changelog": "Änderungskatalog Anzeigen"
     },
     "cloud_save_unsupported": "Nicht unterstützt",
     "disabled": "Deaktiviert",
@@ -94,11 +95,18 @@
         "totalPlayed": "Spielzeit",
         "dlcs": "DLCs",
         "branch": {
-            "disabled": "Deaktiviert"
+            "disabled": "Deaktiviert",
+            "password": "Setze Passwort für privaten Kanal",
+            "setPrivateBranchPassword": "Setze Passwort für privaten Kanal",
+            "select": "Beta-Kanal auswählen"
         },
         "builds": {
-            "version": "Version"
-        }
+            "version": "Version",
+            "buildsSelector": "Spielversion auswählen",
+            "toggle": "Behalte das Spiel in einer spezifischen Version"
+        },
+        "changelogFor": "Änderungskatalog für {{gameTitle}}",
+        "modify": "Installation modifizieren"
     },
     "gamecard": {
         "moving": "Wird verschoben …",
@@ -141,7 +149,8 @@
             "message": "Die Unterstützung vom Anticheat-System ist kaputt oder wurde verweigert. Das Spiel wird nicht funktionieren. Möchtest Du es trotzdem installieren?",
             "title": "Unterstützung vom Anticheat-System kaputt oder verweigert",
             "cancel": "Nein",
-            "install": "Ja (Ich verstehe, dass es nicht funktionieren wird)"
+            "install": "Ja (Ich verstehe, dass es nicht funktionieren wird)",
+            "ok": "Ok"
         },
         "flatpak-path-not-writtable": "Fehler: Sandbox Zugriff auf diesen Pfad nicht authorisiert. Datenverlust wird eintreten."
     },
@@ -160,7 +169,8 @@
         "launching": "Wird gestartet …",
         "ubisoft": "Ubisoft Connect wird installiert …",
         "prerequisites": "Installiere Voraussetzungen",
-        "winetricks": "Installiere Winetricks Pakete"
+        "winetricks": "Installiere Winetricks Pakete",
+        "redist": "Installiere weiterverbreitbare Komponenten"
     },
     "launch": {
         "options": "Startoptionen …"
@@ -178,7 +188,9 @@
     },
     "setting": {
         "use-default-wine-settings": "Standardeinstellungen für Wine verwenden",
-        "winecrossoverbottle": "CrossOver Bottle"
+        "winecrossoverbottle": "CrossOver Bottle",
+        "show-wine-settings": "Wine-Einstellungen anzeigen",
+        "warn-use-default-wine-settings": "Verwenden Sie diese Einstellung nur, wenn Sie wissen, was Sie damit tun.<br/>Einen Wine-Prefix für mehrere Spiele zu verwenden kann zu Problemen führen, wenn deren Abhängigkeiten zueinander inkompatibel sind."
     },
     "sideload": {
         "field": {
@@ -230,7 +242,8 @@
         "gog-goodie": "Dieses Spiel scheint nicht installiert werden zu können. Überprüfe herunterladbare Inhalte auf https://gog.com/account",
         "goodie": "Kann nicht installiert werden",
         "prerequisites": "Installiere Voraussetzungen",
-        "winetricks": "Winetrick Fehlerkorrekturen anwenden"
+        "winetricks": "Winetrick Fehlerkorrekturen anwenden",
+        "redist": "Installiere weiterverteilbare Komponenten ({{redist}})"
     },
     "submenu": {
         "addShortcut": "Verknüpfung hinzufügen",
@@ -256,6 +269,15 @@
         },
         "title": {
             "gamePage": "Spieleseite"
+        }
+    },
+    "modifyInstall": {
+        "nodlcs": "Keine Spieleerweiterungen verfügbar",
+        "versionCollapsable": "Spielversion",
+        "dlcsCollapsible": "Spieleerweiterung",
+        "redMod": {
+            "collapsible": "REDmod Integration",
+            "enable": "Mods aktivieren"
         }
     }
 }

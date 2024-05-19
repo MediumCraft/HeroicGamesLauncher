@@ -157,7 +157,8 @@
         "wineprefix": "Aukeratu Wine Prefix karpeta",
         "yes": "BAI",
         "dontShowAgain": "Ez erakutsi berriro",
-        "choose-nile-binary": "Hautatu Nile bitarra"
+        "choose-nile-binary": "Hautatu Nile bitarra",
+        "update": "Update"
     },
     "button": {
         "cancel": "Ezeztatu",
@@ -218,7 +219,8 @@
     "game": {
         "status": "Egoera",
         "store": "Denda",
-        "title": "Jokoaren izenburua"
+        "title": "Jokoaren izenburua",
+        "modify": "Aldatu Instalazioa"
     },
     "generic": {
         "error": {
@@ -629,6 +631,12 @@
             "details": "Xehetasunak",
             "title": {
                 "resetHeroic": "Berrezarri Heroic"
+            },
+            "resetHeroic": {
+                "help": "Ziur zaude Heroic berrabiarazi nahi duzula? Horrek ezarpen guztiak eta cacheko biltegiratzea ezabatuko ditu, baina ez ditu zure instalatutako jokoak edo Epic-eko kredentzialak ezabatuko. Heroic-en bertsio eramangarriak (AppImage, WinPortable, ...) berrabiarazi egin behar dira."
+            },
+            "clearCache": {
+                "help9": "Game Settings"
             }
         }
     },
@@ -721,5 +729,8 @@
     "category-settings": {
         "cancel": "Ezeztatu",
         "warning": "Warning"
+    },
+    "window": {
+        "close": "Itxi"
     }
 }

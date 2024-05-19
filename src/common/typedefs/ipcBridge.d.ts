@@ -1,9 +1,5 @@
 import { EventEmitter } from 'node:events'
-import {
-  IpcMainEvent,
-  OpenDialogOptions,
-  TitleBarOverlayOptions
-} from 'electron'
+import { IpcMainEvent, OpenDialogOptions, TitleBarOverlay } from 'electron'
 
 import {
   Runner,
@@ -80,7 +76,7 @@ interface SyncIPCFunctions {
   openCustomThemesWiki: () => void
   showConfigFileInFolder: (appName: string) => void
   removeFolder: ([path, folderName]: [string, string]) => void
-  clearCache: (showDialog?: boolean) => void
+  clearCache: (showDialog?: boolean, fromVersionChange?: boolean) => void
   resetHeroic: () => void
   createNewWindow: (url: string) => void
   logoutGOG: () => void
@@ -108,7 +104,7 @@ interface SyncIPCFunctions {
   maximizeWindow: () => void
   unmaximizeWindow: () => void
   closeWindow: () => void
-  setTitleBarOverlay: (options: TitleBarOverlayOptions) => void
+  setTitleBarOverlay: (options: TitleBarOverlay) => void
   winetricksInstall: ({
     runner: Runner,
     appName: string,
@@ -228,11 +224,9 @@ interface AsyncIPCFunctions {
   }) => Promise<void>
   isNative: (args: { appName: string; runner: Runner }) => boolean
   getLogContent: (appNameOrRunner: string) => string
-  installWineVersion: (
-    release: WineVersionInfo
-  ) => Promise<'error' | 'abort' | 'success'>
+  installWineVersion: (release: WineVersionInfo) => Promise<void>
   refreshWineVersionInfo: (fetch?: boolean) => Promise<void>
-  removeWineVersion: (release: WineVersionInfo) => Promise<boolean>
+  removeWineVersion: (release: WineVersionInfo) => Promise<void>
   shortcutsExists: (appName: string, runner: Runner) => boolean
   addToSteam: (appName: string, runner: Runner) => Promise<boolean>
   removeFromSteam: (appName: string, runner: Runner) => Promise<void>

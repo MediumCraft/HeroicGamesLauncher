@@ -149,7 +149,10 @@
             "cancel": "Ne",
             "message": "Podpora anticheatu je rozbitá nebo zakázaná. Hra nebude fungovat. Chcete jej přesto nainstalovat?",
             "install": "Ano (chápu, že to nebude fungovat)",
-            "title": "Rozbitý/zakázaný anticheat"
+            "title": "Rozbitý/zakázaný anticheat",
+            "install_anyway": "Ano (rozumím, že funkce hry více hráčů nebudou fungovat)",
+            "multiplayer_message": "Podpora anticheatu je rozbitá nebo odmítnutá. Hra se může otevřít, ale nebudou fungovat funkce hry více hráčů. Chcete ji přesto nainstalovat?",
+            "ok": "Ok"
         },
         "flatpak-path-not-writtable": "Chyba: této cestě nebyl udělen přístup k sandboxu, vyskytne se ztráta dat."
     },
@@ -187,7 +190,9 @@
     },
     "setting": {
         "use-default-wine-settings": "Použít výchozí nastavení Wine",
-        "winecrossoverbottle": "CrossOver Bottle"
+        "winecrossoverbottle": "CrossOver Bottle",
+        "warn-use-default-wine-settings": "Tuto možnost použijte pouze pokud víte, co děláte.<br/>Sdílení stejného prefixu pro více her může způsobit problémy, pokud jsou jejich závislosti nekompatibilní.",
+        "show-wine-settings": "Zobrazit nastavení Wine"
     },
     "sideload": {
         "field": {
@@ -209,7 +214,7 @@
         }
     },
     "specs": {
-        "minimum": "Minimum",
+        "minimum": "Minimální",
         "recommended": "Doporučené"
     },
     "status": {
@@ -230,7 +235,7 @@
         "uninstalling": "Odinstalace",
         "updating": "Aktualizuji hru",
         "playing": "Hraní",
-        "moving-files": "Přesouvání souboru '{{file}}': {{percent}} ",
+        "moving-files": "Přesouvání souboru „{{file}}“: {{percent}} %",
         "syncingSaves": "Synchronizuji uložené soubory",
         "launching": "Spouštění",
         "ubisoft": "Instalace Ubisoftu",

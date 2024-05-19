@@ -54,6 +54,7 @@ export interface ContextType {
     removeFromGame: (category: string, appName: string) => void
     addCategory: (newCategory: string) => void
     removeCategory: (category: string) => void
+    renameCategory: (oldName: string, newName: string) => void
   }
   currentCustomCategories: string[]
   setCurrentCustomCategories: (newCustomCategories: string[]) => void
@@ -84,6 +85,8 @@ export interface ContextType {
   installingEpicGame: boolean
   allTilesInColor: boolean
   setAllTilesInColor: (value: boolean) => void
+  titlesAlwaysVisible: boolean
+  setTitlesAlwaysVisible: (value: boolean) => void
   setSideBarCollapsed: (value: boolean) => void
   sidebarCollapsed: boolean
   activeController: string
@@ -228,6 +231,8 @@ export interface LibraryContextType {
   setSortInstalled: (value: boolean) => void
   showSupportOfflineOnly: boolean
   setShowSupportOfflineOnly: (value: boolean) => void
+  handleAddGameButtonClick: () => void
+  setShowCategories: (value: boolean) => void
 }
 
 export interface GameContextType {

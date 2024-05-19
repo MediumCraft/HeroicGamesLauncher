@@ -8,7 +8,7 @@ import {
   GameMetadataInner,
   LegendaryInstallInfo
 } from './types/legendary'
-import { IpcRendererEvent, TitleBarOverlay } from 'electron'
+import { TitleBarOverlay } from 'electron'
 import { ChildProcess } from 'child_process'
 import type { HowLongToBeatEntry } from 'backend/wiki_game_info/howlongtobeat/utils'
 import { NileInstallInfo, NileInstallPlatform } from './types/nile'
@@ -99,6 +99,7 @@ export interface AppSettings extends GameSettings {
   maxWorkers: number
   minimizeOnLaunch: boolean
   startInTray: boolean
+  allowInstallationBrokenAnticheat: boolean
 }
 
 export type LibraryTopSectionOptions =
@@ -121,6 +122,7 @@ export interface ExtraInfo {
   releaseDate?: string
   storeUrl?: string
   changelog?: string
+  genres?: string[]
 }
 
 export type GameConfigVersion = 'auto' | 'v0' | 'v0.1'
@@ -132,6 +134,7 @@ export interface GameInfo {
   art_cover: string
   art_logo?: string
   art_background?: string
+  art_icon?: string
   art_square: string
   cloud_save_enabled?: boolean
   developer?: string
@@ -171,6 +174,7 @@ export interface GameSettings {
   enableDXVKFpsLimit: boolean
   enableEsync: boolean
   enableFSR: boolean
+  enableMsync: boolean
   enableFsync: boolean
   gamescope: GameScopeSettings
   enviromentOptions: EnviromentVariable[]
@@ -193,6 +197,8 @@ export interface GameSettings {
   wrapperOptions: WrapperVariable[]
   savesPath: string
   gogSaves?: GOGCloudSavesLocation[]
+  beforeLaunchScriptPath: string
+  afterLaunchScriptPath: string
 }
 
 export type Status =
@@ -534,31 +540,11 @@ interface GamepadActionArgsWithoutMetadata {
   metadata?: undefined
 }
 
-type ElWebview = {
-  canGoBack: () => boolean
-  canGoForward: () => boolean
-  goBack: () => void
-  goForward: () => void
-  reload: () => void
-  isLoading: () => boolean
-  getURL: () => string
-  copy: () => string
-  selectAll: () => void
-  findInPage: (text: string | RegExp) => void
-}
-
-export type WebviewType = HTMLWebViewElement & ElWebview
-
 export type InstallPlatform =
   | LegendaryInstallPlatform
   | GogInstallPlatform
   | NileInstallPlatform
   | 'Browser'
-
-export type ConnectivityChangedCallback = (
-  event: IpcRendererEvent,
-  status: ConnectivityStatus
-) => void
 
 export type ConnectivityStatus = 'offline' | 'check-online' | 'online'
 
@@ -691,7 +677,6 @@ export interface WikiInfo {
  */
 export type Type =
   | 'Wine-GE'
-  | 'Wine-GE-LoL'
   | 'Proton-GE'
   | 'Proton'
   | 'Wine-Lutris'
@@ -730,19 +715,9 @@ export enum Repositorys {
   WINESTAGINGMACOS
 }
 
-/**
- * Type for the progress callback state
- */
-export type State = 'downloading' | 'unzipping' | 'idle'
-
-/**
- * Interface for the information that progress callback returns
- */
-export interface ProgressInfo {
-  percentage: number
-  avgSpeed: number
-  eta: string
-}
+export type WineManagerStatus =
+  | { status: 'idle' | 'unzipping' }
+  | { status: 'downloading'; percentage: number; avgSpeed: number; eta: string }
 
 export interface WineManagerUISettings {
   value: string
@@ -770,6 +745,7 @@ interface GameScopeSettings {
   upscaleMethod: string
   fpsLimiter: string
   fpsLimiterNoFocus: string
+  additionalOptions: string
 }
 
 export type InstallInfo =

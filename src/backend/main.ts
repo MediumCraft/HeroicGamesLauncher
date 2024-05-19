@@ -26,8 +26,6 @@ import 'backend/updater'
 import { autoUpdater } from 'electron-updater'
 import { cpus } from 'os'
 import {
-  access,
-  constants,
   existsSync,
   rmSync,
   unlinkSync,
@@ -40,7 +38,6 @@ import {
 import Backend from 'i18next-fs-backend'
 import i18next from 'i18next'
 import { join } from 'path'
-import checkDiskSpace from 'check-disk-space'
 import { DXVK, Winetricks } from './tools'
 import { GameConfig } from './game_config'
 import { GlobalConfig } from './config'
@@ -57,7 +54,6 @@ import {
   showItemInFolder,
   getFileSize,
   detectVCRedist,
-  getFirstExistingParentPath,
   getLatestReleases,
   getShellPath,
   getCurrentChangelog,
@@ -100,8 +96,8 @@ import {
 } from './constants'
 import { handleProtocol } from './protocol'
 import {
-  appendGameLog,
-  initGameLog,
+  appendGamePlayLog,
+  initGamePlayLog,
   initLogger,
   logChangedSetting,
   logDebug,
@@ -114,7 +110,11 @@ import {
 } from './logger/logger'
 import { gameInfoStore } from 'backend/storeManagers/legendary/electronStores'
 import { getFonts } from 'font-list'
-import { runWineCommand } from './launcher'
+import {
+  runAfterLaunchScript,
+  runBeforeLaunchScript,
+  runWineCommand
+} from './launcher'
 import shlex from 'shlex'
 import { initQueue } from './downloadmanager/downloadqueue'
 import {
@@ -201,7 +201,7 @@ async function initializeWindow(): Promise<BrowserWindow> {
     }, 5000)
   }
 
-  GlobalConfig.get()
+  const globalConf = GlobalConfig.get().getSettings()
 
   mainWindow.setIcon(icon)
   app.commandLine.appendSwitch('enable-spatial-navigation')
@@ -253,7 +253,9 @@ async function initializeWindow(): Promise<BrowserWindow> {
   } else {
     Menu.setApplicationMenu(null)
     mainWindow.loadURL(`file://${path.join(publicDir, '../build/index.html')}`)
-    autoUpdater.checkForUpdates()
+    if (globalConf.checkForUpdatesOnStartup) {
+      autoUpdater.checkForUpdates()
+    }
   }
 
   // Changelog links workaround
@@ -564,54 +566,21 @@ ipcMain.on('unlock', () => {
   }
 })
 
-ipcMain.handle('checkDiskSpace', async (event, folder) => {
-  const parent = getFirstExistingParentPath(folder)
-  return new Promise<DiskSpaceData>((res) => {
-    access(parent, constants.W_OK, async (writeError) => {
-      const { free, size: diskSize } = await checkDiskSpace(folder).catch(
-        (checkSpaceError) => {
-          logError(
-            [
-              'Failed to check disk space for',
-              `"${folder}":`,
-              checkSpaceError.stack ?? `${checkSpaceError}`
-            ],
-            LogPrefix.Backend
-          )
-          return { free: 0, size: 0 }
-        }
-      )
-      if (writeError) {
-        logWarning(
-          [
-            'Cannot write to',
-            `"${folder}":`,
-            writeError.stack ?? `${writeError}`
-          ],
-          LogPrefix.Backend
-        )
-      }
+ipcMain.handle('checkDiskSpace', async (_e, folder): Promise<DiskSpaceData> => {
+  // FIXME: Propagate errors
+  const parsedPath = Path.parse(folder)
 
-      const isValidFlatpakPath = !(
-        isFlatpak &&
-        folder.startsWith(process.env.XDG_RUNTIME_DIR || '/run/user/')
-      )
+  const { freeSpace, totalSpace } = await getDiskInfo(parsedPath)
+  const pathIsWritable = await isWritable(parsedPath)
+  const pathIsFlatpakAccessible = isAccessibleWithinFlatpakSandbox(parsedPath)
 
-      if (!isValidFlatpakPath) {
-        logWarning(`Install location was not granted sandbox access!`)
-      }
-
-      const ret = {
-        free,
-        diskSize,
-        message: `${getFileSize(free)} / ${getFileSize(diskSize)}`,
-        validPath: !writeError,
-        validFlatpakPath: isValidFlatpakPath
-      }
-      logDebug(`${JSON.stringify(ret)}`, LogPrefix.Backend)
-      res(ret)
-    })
-  })
+  return {
+    free: freeSpace,
+    diskSize: totalSpace,
+    validPath: pathIsWritable,
+    validFlatpakPath: pathIsFlatpakAccessible,
+    message: `${getFileSize(freeSpace)} / ${getFileSize(totalSpace)}`
+  }
 })
 
 ipcMain.handle('isFrameless', () => isFrameless())
@@ -714,8 +683,8 @@ ipcMain.handle('getCurrentChangelog', async () => {
   return getCurrentChangelog()
 })
 
-ipcMain.on('clearCache', (event, showDialog?: boolean) => {
-  clearCache()
+ipcMain.on('clearCache', (event, showDialog, fromVersionChange = false) => {
+  clearCache(undefined, fromVersionChange)
   sendFrontendMessage('refreshLibrary')
 
   if (showDialog) {
@@ -779,8 +748,10 @@ ipcMain.handle(
       const info = await libraryManagerMap[runner].getInstallInfo(
         appName,
         installPlatform,
-        branch,
-        build
+        {
+          branch,
+          build
+        }
       )
       if (info === undefined) return null
       return info
@@ -1033,10 +1004,10 @@ ipcMain.handle(
       powerDisplayId = powerSaveBlocker.start('prevent-display-sleep')
     }
 
-    initGameLog(game)
+    initGamePlayLog(game)
 
     if (logsDisabled) {
-      appendGameLog(
+      appendGamePlayLog(
         game,
         'IMPORTANT: Logs are disabled. Enable logs before reporting an issue.'
       )
@@ -1066,6 +1037,8 @@ ipcMain.handle(
       }
     }
 
+    await runBeforeLaunchScript(game, gameSettings)
+
     sendGameStatusUpdate({
       appName,
       runner,
@@ -1081,14 +1054,17 @@ ipcMain.handle(
     const launchResult = await command
       .catch((exception) => {
         logError(exception, LogPrefix.Backend)
-        appendGameLog(
+        appendGamePlayLog(
           game,
           `An exception occurred when launching the game:\n${exception.stack}`
         )
 
         return false
       })
-      .finally(() => stopLogger(appName))
+      .finally(async () => {
+        await runAfterLaunchScript(game, gameSettings)
+        stopLogger(appName)
+      })
 
     // Stop display sleep blocker
     if (powerDisplayId !== null) {
@@ -1740,3 +1716,9 @@ import './wiki_game_info/ipc_handler'
 import './recent_games/ipc_handler'
 import './tools/ipc_handler'
 import './progress_bar'
+import {
+  getDiskInfo,
+  isAccessibleWithinFlatpakSandbox,
+  isWritable
+} from './utils/filesystem'
+import { Path } from './schemas'

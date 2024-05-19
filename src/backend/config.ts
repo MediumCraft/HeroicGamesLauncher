@@ -313,9 +313,12 @@ class GlobalConfigV0 extends GlobalConfig {
       wineVersion: defaultWine,
       enableEsync: true,
       enableFsync: isLinux,
+      enableMsync: isMac,
       eacRuntime: isLinux,
       battlEyeRuntime: isLinux,
-      framelessWindow: false
+      framelessWindow: false,
+      beforeLaunchScriptPath: '',
+      afterLaunchScriptPath: ''
     }
     // @ts-expect-error TODO: We need to settle on *one* place to define settings defaults
     return settings

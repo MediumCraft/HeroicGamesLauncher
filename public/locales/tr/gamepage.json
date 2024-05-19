@@ -44,7 +44,7 @@
             "message": "Bu oyunun bir güncellemesi var, güncelleme şimdi uygulansın mı?",
             "title": "Oyunun Güncellenmesi Gerekiyor"
         },
-        "wineprefix": "WinePrefix Klasörünü Seçin",
+        "wineprefix": "WinePrefix Klasörünü Seç",
         "yes": "EVET",
         "close": "Kapat"
     },
@@ -72,7 +72,8 @@
         "unhide_game": "Oyunu Göster",
         "uninstall": "Kaldır",
         "update": "Güncelle",
-        "details": "Detaylar"
+        "details": "Detaylar",
+        "changelog": "Değişiklik Günlüğünü Göster"
     },
     "cloud_save_unsupported": "Desteklenmiyor",
     "disabled": "Devre dışı",
@@ -94,11 +95,18 @@
         "totalPlayed": "Oynanan Zaman",
         "dlcs": "DLC'ler",
         "branch": {
-            "disabled": "Devre dışı"
+            "disabled": "Devre dışı",
+            "password": "Özel kanal parolası belirle",
+            "setPrivateBranchPassword": "Özel kanal parolası belirle",
+            "select": "Beta kanalını seç"
         },
         "builds": {
-            "version": "Sürüm"
-        }
+            "version": "Sürüm",
+            "buildsSelector": "Oyun sürümünü seç",
+            "toggle": "Oyunu belirli bir sürümde tut"
+        },
+        "changelogFor": "{{gameTitle}} değişiklik günlükleri",
+        "modify": "Kurulumu Düzenle"
     },
     "gamecard": {
         "moving": "Taşınıyor",
@@ -141,7 +149,10 @@
             "cancel": "Hayır",
             "message": "Anti hile desteği bozuldu ya da reddedildi. Oyun çalışmayacak. Yine de kurmak istiyor musunuz?",
             "install": "Evet (Bunun işe yaramayacağının farkındayım)",
-            "title": "Anti Hile Bozuldu/Reddedildi"
+            "title": "Anti Hile Bozuldu/Reddedildi",
+            "install_anyway": "Evet (çoklu oyuncu özelliklerinin çalışmayabileceğini anlıyorum)",
+            "multiplayer_message": "Hile önleyici desteği hatalı veya red edildi. Oyun açılabilir fakat çoklu oyuncu özellikleri çalışmayabilir. Yinede yüklemek istiyor musun?",
+            "ok": "Tamam"
         },
         "flatpak-path-not-writtable": "Hata: Bu yola sandbox erişimi verilmedi, veri kaybı yaşanacak."
     },
@@ -160,7 +171,8 @@
         "launching": "Başlatılıyor",
         "ubisoft": "Ubisoft Connect Yükleniyor",
         "winetricks": "Winetricks Paketleri Kuruluyor",
-        "prerequisites": "Gereksinimler Kuruluyor"
+        "prerequisites": "Gereksinimler Kuruluyor",
+        "redist": "Dağıtılabilirler Kuruluyor"
     },
     "launch": {
         "options": "Başlatma Seçenekleri..."
@@ -178,7 +190,9 @@
     },
     "setting": {
         "use-default-wine-settings": "Varsayılan Wine Ayarlarını Kullan",
-        "winecrossoverbottle": "CrossOver Bottle"
+        "winecrossoverbottle": "CrossOver Bottle",
+        "warn-use-default-wine-settings": "Bu seçeneği yalnızca ne yaptığınızı biliyorsanız kullanın.<br/>Birden çok oyun için aynı ön eki paylaşmak, bağımlılıkları uyumsuzsa sorun oluşturabilir.",
+        "show-wine-settings": "Wine ayarlarını göster"
     },
     "sideload": {
         "field": {
@@ -221,7 +235,7 @@
         "uninstalling": "Kaldırılıyor",
         "updating": "Oyun Güncelleniyor",
         "playing": "Oynanıyor",
-        "moving-files": "'{{file}}' dosyası taşınıyor: {{percent}} ",
+        "moving-files": "'{{file}}' dosyası taşınıyor: % {{percent}}",
         "syncingSaves": "Kayıtlar Senkronize Ediliyor",
         "launching": "Başlatılıyor",
         "ubisoft": "Ubisoft Kuruluyor",
@@ -230,7 +244,8 @@
         "gog-goodie": "Bu oyun kurulabilir görünmüyor. İndirilebilir içeriği https://gog.com/account adresinden kontrol edin",
         "goodie": "Kurulamaz",
         "prerequisites": "Gereklilikler Kuruluyor",
-        "winetricks": "Winetricks düzeltmeleri uygulanıyor"
+        "winetricks": "Winetricks düzeltmeleri uygulanıyor",
+        "redist": "Yeniden Dağıtılabilir ({{redist}}) Kuruluyor"
     },
     "submenu": {
         "addShortcut": "Kısayol ekle",
@@ -257,5 +272,14 @@
         "title": {
             "gamePage": "Oyun Sayfası"
         }
+    },
+    "modifyInstall": {
+        "dlcsCollapsible": "DLC",
+        "nodlcs": "DLC yok",
+        "redMod": {
+            "collapsible": "REDmod Tümleşimi",
+            "enable": "Modları etkinleştir"
+        },
+        "versionCollapsable": "Oyun Sürümü"
     }
 }

@@ -15,7 +15,8 @@ import { homedir } from 'os'
 import { dirname, join } from 'path'
 import { PlistObject, parse as plistParse } from 'plist'
 import LaunchCommand from '../storeManagers/legendary/commands/launch'
-import { NonEmptyString, Path } from '../storeManagers/legendary/commands/base'
+import { NonEmptyString } from '../storeManagers/legendary/commands/base'
+import { Path } from 'backend/schemas'
 
 /**
  * Loads the default wine installation path and version.
@@ -439,7 +440,9 @@ export function getWineFlags(
     case 'proton':
       partialCommand = {
         '--no-wine': true,
-        '--wrapper': NonEmptyString.parse(`${wrapper} '${wineBin}' run`)
+        '--wrapper': NonEmptyString.parse(
+          `${wrapper} '${wineBin}' waitforexitandrun`
+        )
       }
       break
     case 'crossover':

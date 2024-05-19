@@ -6,21 +6,21 @@ import React, {
   useState
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useLocation, useParams } from 'react-router'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
 
-import { UpdateComponent } from 'frontend/components/UI'
+import { ToggleSwitch, UpdateComponent } from 'frontend/components/UI'
 import WebviewControls from 'frontend/components/UI/WebviewControls'
 import ContextProvider from 'frontend/state/ContextProvider'
-import { Runner, WebviewType } from 'common/types'
 import './index.css'
 import LoginWarning from '../Login/components/LoginWarning'
 import { NileLoginData } from 'common/types/nile'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader
+} from 'frontend/components/UI/Dialog'
 
-interface Props {
-  store?: 'epic' | 'gog' | 'amazon'
-}
-
-const validStoredUrl = (url: string, store: 'epic' | 'gog' | 'amazon') => {
+const validStoredUrl = (url: string, store: string) => {
   switch (store) {
     case 'epic':
       return url.includes('epicgames.com')
@@ -33,7 +33,7 @@ const validStoredUrl = (url: string, store: 'epic' | 'gog' | 'amazon') => {
   }
 }
 
-export default function WebView({ store }: Props) {
+export default function WebView() {
   const { i18n } = useTranslation()
   const { pathname, search } = useLocation()
   const { t } = useTranslation()
@@ -49,7 +49,12 @@ export default function WebView({ store }: Props) {
     null
   )
   const navigate = useNavigate()
-  const webviewRef = useRef<WebviewType>(null)
+  const webviewRef = useRef<Electron.WebviewTag>(null)
+
+  // `store` is set to epic/gog/amazon depending on which storefront we're
+  // supposed to show, `runner` is set to a runner if we're supposed to show its
+  // login prompt
+  const { store, runner } = useParams()
 
   let lang = i18n.language
   if (i18n.language === 'pt') {
@@ -68,12 +73,11 @@ export default function WebView({ store }: Props) {
     'https://auth.gog.com/auth?client_id=46899977096215655&redirect_uri=https%3A%2F%2Fembed.gog.com%2Fon_login_success%3Forigin%3Dclient&response_type=code&layout=galaxy'
 
   const trueAsStr = 'true' as unknown as boolean | undefined
-  const { runner } = useParams() as { runner: Runner }
 
   const urls: { [pathname: string]: string } = {
-    '/epicstore': epicStore,
-    '/gogstore': gogStore,
-    '/amazonstore': amazonStore,
+    '/store/epic': epicStore,
+    '/store/gog': gogStore,
+    '/store/amazon': amazonStore,
     '/wiki': wikiURL,
     '/loginEpic': epicLoginUrl,
     '/loginGOG': gogLoginUrl,
@@ -84,7 +88,7 @@ export default function WebView({ store }: Props) {
   let startUrl = urls[pathname]
 
   if (store) {
-    sessionStorage.setItem('last-store', `/${store}store`)
+    sessionStorage.setItem('last-store', store)
     const lastUrl = sessionStorage.getItem(`last-url-${store}`)
     if (lastUrl && validStoredUrl(lastUrl, store)) {
       startUrl = lastUrl
@@ -105,9 +109,9 @@ export default function WebView({ store }: Props) {
   useEffect(() => {
     let mounted = true
     const fetchLocalPreloadPath = async () => {
-      const path = (await window.api.getLocalPeloadPath()) as unknown
+      const path = await window.api.getLocalPeloadPath()
       if (mounted) {
-        setPreloadPath(path as string)
+        setPreloadPath(path)
       }
     }
 
@@ -118,7 +122,7 @@ export default function WebView({ store }: Props) {
     return () => {
       mounted = false
     }
-  }, [])
+  }, [isEpicLogin])
 
   useEffect(() => {
     if (pathname !== '/loginweb/nile') return
@@ -217,8 +221,19 @@ export default function WebView({ store }: Props) {
         }
       }
 
-      webview.addEventListener('dom-ready', loadstop)
+      const onerror = ({ validatedURL }: Electron.DidFailLoadEvent) => {
+        if (validatedURL && validatedURL.match(/track\.adtraction\.com/)) {
+          const parsedUrl = new URL(validatedURL)
+          const redirectUrl = parsedUrl.searchParams.get('url')
+          webview.loadURL(redirectUrl || 'https://gog.com')
+          if (!localStorage.getItem('adtraction-warning')) {
+            setShowAdtractionWarning(true)
+          }
+        }
+      }
 
+      webview.addEventListener('dom-ready', loadstop)
+      webview.addEventListener('did-fail-load', onerror)
       // if the page title changed it's because the store loaded so there's
       // connectivity, we can update the status without waiting for the checks
       const updateConnectivity = () => {
@@ -231,6 +246,7 @@ export default function WebView({ store }: Props) {
       return () => {
         webview.removeEventListener('ipc-message', onIpcMessage)
         webview.removeEventListener('dom-ready', loadstop)
+        webview.removeEventListener('did-fail-load', onerror)
         webview.removeEventListener('page-title-updated', updateConnectivity)
       }
     }
@@ -265,6 +281,12 @@ export default function WebView({ store }: Props) {
     null | 'epic' | 'gog' | 'amazon'
   >(null)
 
+  const [showAdtractionWarning, setShowAdtractionWarning] =
+    useState<boolean>(false)
+
+  const [dontShowAdtractionWarning, setDontShowAdtractionWarning] =
+    useState<boolean>(false)
+
   useEffect(() => {
     if (startUrl.match(/epicgames\.com/) && !epic.username) {
       setShowLoginWarningFor('epic')
@@ -276,6 +298,8 @@ export default function WebView({ store }: Props) {
       setShowLoginWarningFor('gog')
     } else if (startUrl.match(/gaming\.amazon\.com/) && !amazon.user_id) {
       setShowLoginWarningFor('amazon')
+    } else {
+      setShowLoginWarningFor(null)
     }
   }, [startUrl])
 
@@ -311,6 +335,45 @@ export default function WebView({ store }: Props) {
           warnLoginForStore={showLoginWarningFor}
           onClose={onLoginWarningClosed}
         />
+      )}
+      {showAdtractionWarning && (
+        <Dialog
+          showCloseButton={true}
+          onClose={() => {
+            setShowAdtractionWarning(false)
+            dontShowAdtractionWarning &&
+              localStorage.setItem('adtraction-warning', 'true')
+          }}
+        >
+          <DialogHeader
+            onClose={() => {
+              setShowAdtractionWarning(false)
+              dontShowAdtractionWarning &&
+                localStorage.setItem('adtraction-warning', 'true')
+            }}
+          >
+            {t('adtraction-locked.title', 'Adtraction is blocked')}
+          </DialogHeader>
+          <DialogContent>
+            <p>
+              {t(
+                'adtraction-locked.description',
+                'It seems the track.adtraction.com domain was unable to load or is blocked. With adtraction, any purchase you make in the GOG store supports Heroic financially. Consider removing the block if you wish to contribute.'
+              )}
+            </p>
+            <ToggleSwitch
+              htmlId="dont-show-adtraction-warning-checkbox"
+              value={dontShowAdtractionWarning}
+              handleChange={(e) =>
+                setDontShowAdtractionWarning(e.target.checked)
+              }
+              title={t(
+                'adtraction-locked.dont-show-again',
+                "Don't show this warning again"
+              )}
+            />
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   )

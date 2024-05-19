@@ -6,7 +6,8 @@
         "fonts": "字体",
         "title": "辅助功能",
         "zoom": "缩放",
-        "disable_dialog_backdrop_close": "在对话框外单击禁用关闭对话框"
+        "disable_dialog_backdrop_close": "在对话框外单击禁用关闭对话框",
+        "titles_always_visible": "始终在游戏库中显示标题"
     },
     "add_game": "添加游戏",
     "All": "全部",
@@ -16,7 +17,8 @@
         "reference": "引用",
         "source": "来源",
         "status": "状态",
-        "title": "此游戏包含反作弊软件"
+        "title": "此游戏包含反作弊软件",
+        "multiplayer_may_not_work": "由于被拒绝或损坏的反作弊支持，多玩家功能可能不会正常工作。"
     },
     "box": {
         "cache-cleared": {
@@ -120,7 +122,8 @@
         },
         "select": {
             "button": "选择",
-            "exe": "选择 EXE"
+            "exe": "选择 EXE",
+            "script": "选择脚本…"
         },
         "shortcuts": {
             "message": "桌面与开始菜单快捷方式已创建",
@@ -169,7 +172,10 @@
         "wineprefix": "选择 Wine Prefix 文件夹",
         "yes": "是",
         "dontShowAgain": "不再显示",
-        "choose-nile-binary": "选择 Nile 二进制文件"
+        "choose-nile-binary": "选择 Nile 二进制文件",
+        "changelog": "更改记录",
+        "postpone": "延迟",
+        "update": "更新"
     },
     "button": {
         "cancel": "取消",
@@ -313,7 +319,8 @@
             "upscaleWidth": "Gamescope 所用的宽度分辨率。假定 16:9 的长宽比。",
             "gameHeight": "游戏所用的高度分辨率。Gamescope 假定 16:9 的长宽比。",
             "upscaleHeight": "Gamescope 所用的高度分辨率。假定 16:9 长宽比。",
-            "fpsLimiter": "Gamescope 帧数限制，比如 60"
+            "fpsLimiter": "Gamescope 帧数限制，比如 60",
+            "additionalOptions": "要传递给 gamescope 的额外命令行标记。"
         },
         "content": {
             "defaultInstallPath": "这是安装游戏时预先选择的默认路径。",
@@ -337,7 +344,8 @@
         "button": {
             "open": "打开帮助",
             "close": "关闭帮助"
-        }
+        },
+        "msync": "Msync 旨在减少 wineserver 在 CPU 消耗巨大的游戏中的开销。开启它可能会改善受支持的 Linux 内核上的性能。"
     },
     "info": {
         "heroic": {
@@ -500,7 +508,9 @@
             "borderless": "无边框",
             "fullscreen": "全屏",
             "interger": "整数型 Upscale",
-            "stretch": "拉伸图像"
+            "stretch": "拉伸图像",
+            "windowed": "已窗口化",
+            "additionalOptions": "额外选项"
         }
     },
     "other": {
@@ -655,7 +665,7 @@
         "addgamestoapplications": "自动将游戏添加到应用程序",
         "showMetalOverlay": "显示统计数据叠加",
         "alt-nile-bin": "选择替代尼罗河二进制",
-        "autodxvknvapi": "在前置自动安装并更新 DXVK",
+        "autodxvknvapi": "在前置自动安装并更新 DXVK-NVAPI",
         "experimental_features": {
             "enableNewShinyFeature": "新功能",
             "enableNewDesign": "新设计",
@@ -674,6 +684,17 @@
                 "title": "实验性功能"
             },
             "description": "使用无框架窗口（需要重启）"
+        },
+        "msync": "启用 Msync",
+        "after-launch-script-path": "选择在游戏退出后要运行的脚本",
+        "before-launch-script-path": "选择游戏启动前要运行的脚本",
+        "allow_installation_broken_anticheat": {
+            "confirmation": {
+                "title": "你确定吗？",
+                "understand": "我理解",
+                "message": "反作弊损坏或被拒绝的游戏可以运行，但多玩家功能不会正常运作。如果你知晓这一点但仍安装了这样的游戏，请不要寻求支持。"
+            },
+            "label": "允许安装反作弊损坏或被拒绝的游戏"
         }
     },
     "settings": {
@@ -880,7 +901,27 @@
     },
     "wineExplanation": {
         "wine-ge": "Wine-GE-Protonis 是 Glorious Eggroll 创建的 Wine 变体。它是建议用于 Steam 之外的 Wine 版本，提供对故障排除有用的日志。",
-        "wine-ge-lol": "Wine-GE-Proton...-LoL 构建是专为 League of Legends 打造的。由于会造成问题，它们不应被用于任何其他游戏。",
         "proton-ge": "Proton-GE-Proton 是 Glorious Eggroll 创建的 Proton 变体。该变体意在用于 Steam 中，但某些 Steam 之外的游戏也许可以和它更好地配合。它提供大多是用于故障排除的无用日志。"
+    },
+    "emptyLibrary": {
+        "noResults": "使用当前筛选器找不到结果。",
+        "noGames": "你的库是空的。要<1>登录</1>你可以使用商店或单击 <3></3>来手动添加一个。"
+    },
+    "adtraction-locked": {
+        "dont-show-again": "不再显示此警告",
+        "title": "Adtraction 被封禁",
+        "description": "track.adtraction.com 域名似乎无法加载或者被封禁。通过 adtraction，你在 GOG 商店的任意购买都会在经济上支持 Heroic。如果希望作贡献，请考虑解除对此站点的封禁。"
+    },
+    "categories-manager": {
+        "confirm-rename": "确认将“{{oldName}}“重命名为“{{newName}}”",
+        "add": "添加",
+        "no-categories": "尚无分类。",
+        "remove": "删除“{{name}}”",
+        "cancel-remove": "取消删除“{{name}}”",
+        "rename": "重命名“{{name}}”",
+        "cancel-rename": "取消重命名“{{name}}”",
+        "confirm-remove": "确认删除“{{name}}”",
+        "title": "管理分类",
+        "add-placeholder": "添加新分类"
     }
 }

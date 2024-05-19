@@ -1,6 +1,6 @@
 {
     "accessibility": {
-        "actions_font_family_no_default": "Tipografía de acciones (Por Defecto: ",
+        "actions_font_family_no_default": "Tipografía de acciones (Por Defecto):",
         "all_tiles_in_color": "Mostrar todos los juegos a color en la biblioteca",
         "content_font_family_no_default": "Tipografía de contenido (Por Defecto: ",
         "fonts": "Tipografías",
@@ -169,7 +169,10 @@
         "wineprefix": "Selecciona la carpeta de los prefijos para Wine",
         "yes": "SÍ",
         "dontShowAgain": "No volver a mostrar",
-        "choose-nile-binary": "Seleccionar binario del Nile"
+        "choose-nile-binary": "Seleccionar binario del Nile",
+        "update": "Actualizar",
+        "postpone": "Posponer",
+        "changelog": "Registro de cambios"
     },
     "button": {
         "cancel": "Cancelar",
@@ -230,7 +233,8 @@
     "game": {
         "status": "Estado",
         "store": "Tienda",
-        "title": "Título del juego"
+        "title": "Título del juego",
+        "modify": "Modificar instalación"
     },
     "generic": {
         "error": {
@@ -336,7 +340,8 @@
         "button": {
             "open": "Abrir la ayuda",
             "close": "Cerrar ayuda"
-        }
+        },
+        "msync": "Fsync intenta reducir la sobrecarga de wineserver en juegos con uso intensivo de CPU. Activarlo puede mejorar el rendimiento en kernels de Linux que lo soporten."
     },
     "info": {
         "heroic": {
@@ -506,7 +511,7 @@
         "gogdl-version": "Versión de GOGDL: ",
         "legendary-version": "Versión de Legendary: ",
         "weblate": "Ayuda a traducir Heroic.",
-        "nile-version": "Versión del Nilo: "
+        "nile-version": "Versión del Nile: "
     },
     "Other": "Otros",
     "placeholder": {
@@ -673,7 +678,8 @@
             "enableLimiter": "Activar el limitador de FPS",
             "enableUpscaling": "Permite la ampliación",
             "missingMsg": "No podemos encontrar Gamescope en PATH. Instálelo primero o agréguelo a PATH."
-        }
+        },
+        "msync": "Habilitar Esync"
     },
     "settings": {
         "battlEyeRuntime": {
@@ -751,10 +757,14 @@
         },
         "advanced": {
             "clearCache": {
-                "help8": "Juegos Instalados"
+                "help8": "Juegos Instalados",
+                "help9": "Configuración del juego"
             },
             "title": {
-                "resetHeroic": "Reset Heroic"
+                "resetHeroic": "Resetear Heroic"
+            },
+            "resetHeroic": {
+                "help": "¿Estás seguro de que quieres restablecer Heroic? Esto eliminará todas las configuraciones y caché, pero no eliminará los juegos instalados ni las credenciales. Versiones portables (AppImage, WinPortable, ...) de Heroic tienen que ser iniciadas manualmente luego de ejecutar esta acción."
             }
         }
     },
@@ -862,5 +872,22 @@
         "add-new-category": "Añadir una nueva categoría",
         "cancel": "Cancelar",
         "warning": "Advertencia"
+    },
+    "adtraction-locked": {
+        "dont-show-again": "No volver a mostrar este aviso",
+        "title": "Adtraction está bloqueado",
+        "description": "Parece que el dominio track.adtraction.com no pudo cargar o está bloqueado. Con adtraction, cualquier compra que haga en la tienda GOG apoya Heroic financieramente. Considere eliminar el bloqueo si desea contribuir."
+    },
+    "emptyLibrary": {
+        "noResults": "Los filtros actuales no produjeron resultados.",
+        "noGames": "Tu biblioteca está vacía. Puedes <1>iniciar sesión</1> usando una tienda o hacer clic en <3></3> para añadir una manualmente."
+    },
+    "categories-manager": {
+        "add-placeholder": "Añadir una nueva categoría",
+        "cancel-remove": "Cancelar la eliminación de \"{{name}}\"",
+        "cancel-rename": "Cancelar el cambio de nombre de \"{{name}}\"",
+        "no-categories": "Aún no hay categorías.",
+        "remove": "Remover \"{{name}}\"",
+        "add": "Añadir"
     }
 }

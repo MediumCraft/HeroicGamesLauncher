@@ -162,7 +162,8 @@
         "wineprefix": "Odaberite Wine Prefix mapu",
         "yes": "DA",
         "dontShowAgain": "Ne prikazuj ponovo",
-        "choose-nile-binary": "Odaberite binarni Nil"
+        "choose-nile-binary": "Odaberite binarni Nil",
+        "update": "Update"
     },
     "button": {
         "cancel": "Cancel",
@@ -591,7 +592,8 @@
         "addgamestoapplications": "Automatski dodajte igre u aplikacije",
         "showMetalOverlay": "Prikaži preklapanje statistike",
         "alt-nile-bin": "Odaberite alternativnu Nilsku binarnu",
-        "autodxvknvapi": "Automatska instalacija/ažuriranje DXVK na prefiksu"
+        "autodxvknvapi": "Automatska instalacija/ažuriranje DXVK-NVAPI na prefiksu",
+        "msync": "Omogućite Esync"
     },
     "settings": {
         "battlEyeRuntime": {
@@ -637,6 +639,9 @@
         "advanced": {
             "title": {
                 "resetHeroic": "Resetujte Heroic"
+            },
+            "clearCache": {
+                "help9": "Game Settings"
             }
         }
     },

@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react'
 import './index.scss'
 import Runner from './components/Runner'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 
 import { ReactComponent as EpicLogo } from 'frontend/assets/epic-logo.svg'
 import { ReactComponent as GOGLogo } from 'frontend/assets/gog-logo.svg'
@@ -72,7 +72,7 @@ export default React.memo(function NewLogin() {
 
   async function handleLibraryClick() {
     await refreshLibrary({ runInBackground: false })
-    navigate('/library')
+    navigate('/')
   }
 
   return (

@@ -1,12 +1,13 @@
 {
     "accessibility": {
-        "actions_font_family_no_default": "Yazı Tipi Ailesi Eylemleri (Varsayılan: ",
+        "actions_font_family_no_default": "Actions Yazı Tipi Ailesi (Öntanımlı):",
         "all_tiles_in_color": "Tüm oyun karolarını renkli göster",
         "content_font_family_no_default": "Yazı Tipi Ailesi İçeriği (Varsayılan: ",
         "fonts": "Yazı Tipleri",
         "title": "Erişilebilirlik",
         "zoom": "Yakınlaştır",
-        "disable_dialog_backdrop_close": "Kutucuğın dışına tıklayarak kapanış diyaloglarını devre dışı bırakın"
+        "disable_dialog_backdrop_close": "Kutucuğın dışına tıklayarak kapanış diyaloglarını devre dışı bırakın",
+        "titles_always_visible": "Kütüphanede her zaman başlıkları göster"
     },
     "add_game": "Oyun Ekle",
     "All": "Tümü",
@@ -120,7 +121,8 @@
         },
         "select": {
             "button": "Seç",
-            "exe": "EXE'yi seç"
+            "exe": "EXE'yi seç",
+            "script": "Виберіть скрипт..."
         },
         "shortcuts": {
             "message": "Kısayol Masaüstüne ve Başlat Menüsüne eklendi",
@@ -169,7 +171,10 @@
         "wineprefix": "Wine Prefix Klasörünü Seçin",
         "yes": "EVET",
         "dontShowAgain": "Tekrar gösterme",
-        "choose-nile-binary": "Nil ikili dosyasını seçin"
+        "choose-nile-binary": "Nil ikili dosyasını seçin",
+        "update": "Update",
+        "postpone": "Ertele",
+        "changelog": "Değişiklikler"
     },
     "button": {
         "cancel": "İptal et",
@@ -230,7 +235,8 @@
     "game": {
         "status": "Durum",
         "store": "Mağaza",
-        "title": "Oyun Adı"
+        "title": "Oyun Adı",
+        "modify": "Kurulumu Düzenle"
     },
     "generic": {
         "error": {
@@ -312,7 +318,8 @@
             "gameHeight": "Oyunun kullanacağı dikey çözünürlük. Gamescope tarafından 16:9 en boy oranı varsayılır.",
             "upscaleHeight": "Gamescope'un kullanacağı dikey çözünürlük. 16:9 en boy oranı varsayılır.",
             "fpsLimiter": "Gamescope'un kaç kareye sınırlaması gerektiği. Örn. 60",
-            "fpsLimiterNoFocus": "Oyuna odaklanılmamışsa gamescope kare hızı sınırı saniye başına sınırlandırılmalıdır."
+            "fpsLimiterNoFocus": "Oyuna odaklanılmamışsa gamescope kare hızı sınırı saniye başına sınırlandırılmalıdır.",
+            "additionalOptions": "Gamescope'a aktarılacak ek komut satırı bayrakları."
         },
         "content": {
             "defaultInstallPath": "Bu, oyunlar kurulurken ön seçili gelen öntanımlı yoldur.",
@@ -336,7 +343,8 @@
             "downloadManager": "Download Manager",
             "wineManager": "Wine Yöneticisi",
             "library": "Kütüphane"
-        }
+        },
+        "msync": "Msync, İşlemci yoğun oyunlarda wine sunucu yükünü azaltmayı amaçlar. Etkinleştirmek, desteklenen Linux çekirdeklerinde başarımı artırabilir."
     },
     "info": {
         "heroic": {
@@ -499,7 +507,9 @@
             "gameWidth": "Oyun Genişliği",
             "upscaleHeight": "Yüksekliği Artır",
             "stretch": "Görüntüyü Uzat",
-            "interger": "Tamsayı Artırma"
+            "interger": "Tamsayı Artırma",
+            "additionalOptions": "Ek Seçenekler",
+            "windowed": "Pencereli"
         }
     },
     "other": {
@@ -654,12 +664,12 @@
         "showMetalOverlay": "İstatistik Tablosunu Göster",
         "addgamestoapplications": "Oyunları Uygulamalara otomatik ekle",
         "alt-nile-bin": "Alternatif Bir Nil İkilisi Seçin",
-        "autodxvknvapi": "DXVK/NVAPI'yı Ön Eke kendiliğinden Kur/Güncelle",
+        "autodxvknvapi": "DXVK-NVAPI'yı Ön Eke kendiliğinden Kur/Güncelle",
         "disablePlaytimeSync": "Oynama süresi senkronizasyonunu devre dışı bırak",
         "experimental_features": {
             "enableNewDesign": "Yeni tasarım",
             "enableHelp": "Yardım bileşeni",
-            "automaticWinetricksFixes": "Bilinen Winetricks düzeltmelerini kendiliğinden uygula"
+            "automaticWinetricksFixes": "Bilinen düzeltmeleri kendiliğinden uygula"
         },
         "frameless-window": {
             "confirmation": {
@@ -672,7 +682,10 @@
             "enableLimiter": "FPS Sınırlayıcıyı Etkinleştir",
             "enableUpscaling": "Çözünürlük Artırmayı Etkinleştirir",
             "missingMsg": "PATH yolunda gamescope'u bulamadık. Kurun ya da PATH yoluna ekleyin."
-        }
+        },
+        "after-launch-script-path": "Oyun çıktıktan sonra çalıştırılacak betiği seç",
+        "before-launch-script-path": "Oyun başlatılmadan önce başlatılacak betiği seç",
+        "msync": "Msync Etkinleştir"
     },
     "settings": {
         "battlEyeRuntime": {
@@ -750,10 +763,24 @@
         },
         "advanced": {
             "clearCache": {
-                "help8": "Installed Games"
+                "help8": "Installed Games",
+                "help1": "Bu eylem aşağıdaki ön bellekleri temizleyecek:",
+                "help10": "Heroic yapılandırma",
+                "help7": "Mağaza oturum açma",
+                "help9": "Oyun ayarları",
+                "help6": "Bu işlem aşağıdakileri SİLMEYECEK:",
+                "help4": "GOG kütüphane bilgisi (oyunların listesi, indirme diyalogu bilgisi, API bilgisi -yani gereksinimler-)",
+                "help3": "Legendary kütüphane bilgisi (oyunların listesi, yükleme iletişim kutusu bilgisi, oyun bilgisi)",
+                "help2": "Üçüncü parti oyun bilgileri (skorlar, steam uyumluluğu, howlongtobeat, pcgamingwiki, applegamingwiki)",
+                "help5": "Amazon kütüphane bilgisi (oyunların listesi, indirme kutusu bilgisi)"
             },
             "title": {
-                "resetHeroic": "Heroic'i Sıfırla"
+                "resetHeroic": "Heroic'i Sıfırla",
+                "clearCache": "Ön Belleği Temizle"
+            },
+            "details": "Ayrıntılar",
+            "resetHeroic": {
+                "help": "Bu, Tüm Ayarları ve Önbelleği kaldıracak ancak Yüklenmiş oyunlarınızı veya Epic kimlik bilgilerinizi kaldırmayacak. Heroic'in taşınabilir sürümleri (AppImage, WinPortable, ...) daha sonra manuel olarak yeniden başlatılmalıdır."
             }
         }
     },
@@ -861,5 +888,30 @@
         "delete-question": "Devam ederseniz bu kategori tüm oyunlardan ataması kalıcı olarak kaldırılacak. Devam edelim mi?",
         "new-category": "Yeni Kategori",
         "add-new-category": "Yeni Kategori Ekle"
+    },
+    "emptyLibrary": {
+        "noResults": "Geçerli süzgeç hiçbir sonuç üretmedi.",
+        "noGames": "Kütüphaneniz boş. Bir mağaza kullanarak <1>giriş yapabilirsiniz</1> veya manuel olarak bir tane eklemek için <3>tıklayabilirsiniz</3>."
+    },
+    "adtraction-locked": {
+        "description": "track.adtraction.com alan adı yüklenemedi veya engellenmiş gibi görünüyor. Adtraction ile GOG mağazasında yaptığınız her satın alma, Heroic'i maddi olarak destekliyor. Katkıda bulunmak istiyorsanız engeli kaldırmayı düşünebilirsiniz.",
+        "dont-show-again": "Bu uyarıyı bir daha gösterme",
+        "title": "Adtraction заблоковано"
+    },
+    "wineExplanation": {
+        "wine-ge": "Wine-GE-Proton Glorious Eggroll tarafından yapılmış bir Wine varyasyonudur. Steam dışında kullanılması önerilen Wine'dır. Sorun giderme sırasında kullanışlı hata günlükleri sağlar.",
+        "proton-ge": "Proton-GE-Proton Glorious Eggroll tarafından yapılmış bir Proton varyasyonudur. Steam'de kullanılmak üzere tasarlanmış olsa da, bazı Steam dışı oyunlar bu varyant ile daha iyi çalışabilir. Sorun giderme için genellikle işe yaramaz hata günlükleri sağlar."
+    },
+    "categories-manager": {
+        "add-placeholder": "Yeni Kategori Ekle",
+        "add": "Додати",
+        "cancel-rename": "Скасувати перейменування \"{{name}}\"",
+        "no-categories": "Категорій поки що немає.",
+        "cancel-remove": "Скасувати видалення \"{{name}}\"",
+        "confirm-remove": "Підтвердити видалення \"{{name}}\"",
+        "confirm-rename": "Підтвердіть перейменування \"{{oldName}}\" на \"{{newName}}\"",
+        "rename": "\"{{name}}\" yeniden adlandır",
+        "title": "Kategorileri Yönet",
+        "remove": "\"{{name}}\" kaldır"
     }
 }

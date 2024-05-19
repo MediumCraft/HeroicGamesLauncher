@@ -187,7 +187,9 @@
     },
     "setting": {
         "use-default-wine-settings": "Выкарыстоўвайце налады Wine па змаўчанні",
-        "winecrossoverbottle": "Бутэлька CrossOver"
+        "winecrossoverbottle": "Бутэлька CrossOver",
+        "show-wine-settings": "Паказаць параметры Wine",
+        "warn-use-default-wine-settings": "Карыстайцеся гэтай опцыяй, толькі калі ведаеце, што робіце.<br/>Выкарыстанне аднаго прэфікса для некалькіх гульняў можа стварыць праблемы, калі іх залежнасці несумяшчальныя."
     },
     "sideload": {
         "field": {
@@ -230,7 +232,7 @@
         "uninstalling": "Выдаленне",
         "updating": "Абнаўленне гульні",
         "playing": "Гуляючы",
-        "moving-files": "Перамяшчэнне файла \"{{file}}\": {{percent}} ",
+        "moving-files": "Перамяшчэнне файла \"{{file}}\": {{percent}}%",
         "syncingSaves": "Сінхранізацыя захаванняў",
         "launching": "Запуск",
         "ubisoft": "Ўстаноўка Ubisoft",
@@ -240,7 +242,7 @@
         "goodie": "Не ўсталёўваецца",
         "winetricks": "Прымяненне выпраўленняў Winetricks",
         "prerequisites": "Усталяванне патрэбных кампанентаў",
-        "redist": "Усталяванне распаўсюджваемых матэрыялаў ({{redist}})"
+        "redist": "Усталяванне распаўсюджваемых файлаў ({{redist}})"
     },
     "submenu": {
         "addShortcut": "Дадаць ярлык",

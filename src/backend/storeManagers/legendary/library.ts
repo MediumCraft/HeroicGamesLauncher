@@ -22,7 +22,8 @@ import {
   formatEpicStoreUrl,
   getLegendaryBin,
   isEpicServiceOffline,
-  getFileSize
+  getFileSize,
+  axiosClient
 } from '../../utils'
 import {
   fallBackImage,
@@ -49,11 +50,11 @@ import { callRunner } from '../../launcher'
 import { dirname, join } from 'path'
 import { isOnline } from 'backend/online_monitor'
 import { update } from './games'
-import axios from 'axios'
 import { app } from 'electron'
 import { copySync } from 'fs-extra'
 import { LegendaryCommand } from './commands'
-import { LegendaryAppName, LegendaryPlatform, Path } from './commands/base'
+import { LegendaryAppName, LegendaryPlatform } from './commands/base'
+import { Path } from 'backend/schemas'
 import shlex from 'shlex'
 import { Entries } from 'type-fest'
 
@@ -67,9 +68,8 @@ export async function initLegendaryLibraryManager() {
     ? join(app.getPath('appData'), 'legendary')
     : join(userHome, '.config', 'legendary')
   if (!existsSync(legendaryConfigPath) && existsSync(globalLegendaryConfig)) {
-    copySync(globalLegendaryConfig, legendaryConfigPath, {
-      recursive: true
-    })
+    mkdirSync(legendaryConfigPath, { recursive: true })
+    copySync(globalLegendaryConfig, legendaryConfigPath)
   }
 
   loadGamesInAccount()
@@ -215,10 +215,13 @@ export function getGameInfo(
  */
 export async function getInstallInfo(
   appName: string,
-  installPlatform: InstallPlatform
+  installPlatform: InstallPlatform,
+  options?: { retries?: number }
 ): Promise<LegendaryInstallInfo> {
+  const retries = options?.retries
+
   const cache = installStore.get(appName)
-  if (cache) {
+  if (cache && cache.manifest) {
     logDebug('Using cached install info', LogPrefix.Legendary)
     return cache
   }
@@ -240,8 +243,25 @@ export async function getInstallInfo(
   }
   try {
     const info: LegendaryInstallInfo = JSON.parse(res.stdout)
-    installStore.set(appName, info)
-    return info
+    if (info.manifest) {
+      installStore.set(appName, info)
+      return info
+    } else {
+      const nextRetry = retries !== undefined ? retries - 1 : 3
+      if (nextRetry > 0) {
+        logWarning(
+          `Install info for ${appName} does not include manifest data. Retrying.`
+        )
+        const retriedInfo = await getInstallInfo(appName, installPlatform, {
+          retries: nextRetry
+        })
+        return retriedInfo
+      } else {
+        throw Error(
+          `Install info for ${appName} does not include manifest data after 3 retries.`
+        )
+      }
+    }
   } catch (error) {
     throw Error(`Failed to parse install info for ${appName} with: ${error}`)
   }
@@ -676,7 +696,7 @@ export async function getGameOverride(): Promise<GameOverride> {
   }
 
   try {
-    const response = await axios.get<ResponseDataLegendaryAPI>(
+    const response = await axiosClient.get<ResponseDataLegendaryAPI>(
       'https://heroic.legendary.gl/v1/version.json'
     )
 
@@ -695,7 +715,7 @@ export async function getGameSdl(
   appName: string
 ): Promise<SelectiveDownload[]> {
   try {
-    const response = await axios.get<Record<string, SelectiveDownload>>(
+    const response = await axiosClient.get<Record<string, SelectiveDownload>>(
       `https://heroic.legendary.gl/v1/sdl/${appName}.json`
     )
 

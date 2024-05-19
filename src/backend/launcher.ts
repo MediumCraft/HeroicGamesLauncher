@@ -17,12 +17,7 @@ import {
 // This handles launching games, prefix creation etc..
 
 import i18next from 'i18next'
-import {
-  existsSync,
-  mkdirSync,
-  appendFileSync,
-  writeFileSync
-} from 'graceful-fs'
+import { existsSync, mkdirSync } from 'graceful-fs'
 import { join, normalize } from 'path'
 
 import {
@@ -31,6 +26,7 @@ import {
   flatPakHome,
   isLinux,
   isMac,
+  isWindows,
   isSteamDeckGameMode,
   runtimePath,
   userHome
@@ -46,6 +42,12 @@ import {
   sendGameStatusUpdate
 } from './utils'
 import {
+  appendFileLog,
+  appendGameLog,
+  appendGamePlayLog,
+  appendRunnerLog,
+  initFileLog,
+  initGameLog,
   logDebug,
   logError,
   logInfo,
@@ -98,7 +100,7 @@ async function prepareLaunch(
   // Update Discord RPC if enabled
   let rpcClient = undefined
   if (globalSettings.discordRPC) {
-    rpcClient = constructAndUpdateRPC(gameInfo.title)
+    rpcClient = constructAndUpdateRPC(gameInfo)
   }
 
   // If we're not on Linux, we can return here
@@ -212,6 +214,10 @@ async function prepareLaunch(
           gameScopeCommand.push('-o', gameSettings.gamescope.fpsLimiterNoFocus)
         }
       }
+
+      gameScopeCommand.push(
+        ...shlex.split(gameSettings.gamescope.additionalOptions ?? '')
+      )
 
       // Note: needs to be the last option
       gameScopeCommand.push('--')
@@ -338,7 +344,7 @@ async function prepareWineLaunch(
       sendFrontendMessage('gameStatusUpdate', {
         appName,
         runner: 'gog',
-        status: 'playing'
+        status: 'launching'
       })
     }
     if (runner === 'nile') {
@@ -366,18 +372,6 @@ async function prepareWineLaunch(
     if (isLinux && gameSettings.autoInstallVkd3d) {
       await DXVK.installRemove(gameSettings, 'vkd3d', 'backup')
     }
-  }
-
-  if (gameSettings.eacRuntime && !isInstalled('eac_runtime') && isOnline()) {
-    await download('eac_runtime')
-  }
-
-  if (
-    gameSettings.battlEyeRuntime &&
-    !isInstalled('battleye_runtime') &&
-    isOnline()
-  ) {
-    await download('battleye_runtime')
   }
 
   if (gameSettings.eacRuntime && !isInstalled('eac_runtime') && isOnline()) {
@@ -436,7 +430,7 @@ async function installFixes(appName: string, runner: Runner) {
         await runWineCommandOnGame(appName, {
           commandParts: [fullPath],
           wait: true,
-          protonVerb: 'waitforexitandrun'
+          protonVerb: 'run'
         })
       }
     }
@@ -580,24 +574,41 @@ function setupWineEnvVars(gameSettings: GameSettings, gameId = '0') {
   if (!gameSettings.enableEsync && wineVersion.type === 'proton') {
     ret.PROTON_NO_ESYNC = '1'
   }
-  if (gameSettings.enableFsync && wineVersion.type !== 'proton') {
+  if (gameSettings.enableMsync && isMac) {
+    ret.WINEMSYNC = '1'
+    // This is to solve a problem with d3dmetal
+    if (wineVersion.type === 'toolkit') {
+      ret.WINEESYNC = '1'
+    }
+  }
+  if (isLinux && gameSettings.enableFsync && wineVersion.type !== 'proton') {
     ret.WINEFSYNC = '1'
   }
-  if (!gameSettings.enableFsync && wineVersion.type === 'proton') {
+  if (isLinux && !gameSettings.enableFsync && wineVersion.type === 'proton') {
     ret.PROTON_NO_FSYNC = '1'
   }
-  if (gameSettings.autoInstallDxvkNvapi && wineVersion.type === 'proton') {
-    ret.PROTON_ENABLE_NVAPI = '1'
-    ret.DXVK_NVAPI_ALLOW_OTHER_DRIVERS = '1'
+  if (wineVersion.type === 'proton') {
+    if (gameSettings.autoInstallDxvkNvapi) {
+      ret.PROTON_ENABLE_NVAPI = '1'
+      ret.DXVK_NVAPI_ALLOW_OTHER_DRIVERS = '1'
+    }
+    // proton 9 enabled NVAPI by default
+    else {
+      ret.PROTON_DISABLE_NVAPI = '1'
+    }
   }
-  if (gameSettings.autoInstallDxvkNvapi && wineVersion.type === 'wine') {
+  if (
+    isLinux &&
+    gameSettings.autoInstallDxvkNvapi &&
+    wineVersion.type === 'wine'
+  ) {
     ret.DXVK_ENABLE_NVAPI = '1'
     ret.DXVK_NVAPI_ALLOW_OTHER_DRIVERS = '1'
   }
-  if (gameSettings.eacRuntime) {
+  if (isLinux && gameSettings.eacRuntime) {
     ret.PROTON_EAC_RUNTIME = join(runtimePath, 'eac_runtime')
   }
-  if (gameSettings.battlEyeRuntime) {
+  if (isLinux && gameSettings.battlEyeRuntime) {
     ret.PROTON_BATTLEYE_RUNTIME = join(runtimePath, 'battleye_runtime')
   }
   if (wineVersion.type === 'proton') {
@@ -873,7 +884,7 @@ async function runWineCommand({
       }
 
       if (options?.logFile && existsSync(options.logFile)) {
-        appendFileSync(
+        appendFileLog(
           options.logFile,
           `Wine Command: ${bin} ${commandParts.join(' ')}\n\nGame Log:\n`
         )
@@ -885,7 +896,7 @@ async function runWineCommand({
 
     child.stdout.on('data', (data: string) => {
       if (!logsDisabled && options?.logFile) {
-        appendFileSync(options.logFile, data)
+        appendFileLog(options.logFile, data)
       }
 
       if (options?.onOutput) {
@@ -897,7 +908,7 @@ async function runWineCommand({
 
     child.stderr.on('data', (data: string) => {
       if (!logsDisabled && options?.logFile) {
-        appendFileSync(options.logFile, data)
+        appendFileLog(options.logFile, data)
       }
 
       if (options?.onOutput) {
@@ -945,17 +956,90 @@ interface RunnerProps {
 
 const commandsRunning = {}
 
+let shouldUsePowerShell: boolean | null = null
+
+function appNameFromCommandParts(commandParts: string[], runner: Runner) {
+  let appNameIndex = -1
+  let idx = -1
+
+  switch (runner) {
+    case 'gog':
+      idx = commandParts.findIndex((value) => value === 'launch')
+      if (idx > -1) {
+        // for GOGdl, between `launch` and the app name there's another element
+        appNameIndex = idx + 2
+      } else {
+        // for the `download`, `repair` and `update` command it's right after
+        idx = commandParts.findIndex((value) =>
+          ['download', 'repair', 'update'].includes(value)
+        )
+        if (idx > -1) {
+          appNameIndex = idx + 1
+        }
+      }
+      break
+    case 'legendary':
+      // for legendary, the appName comes right after the commands
+      idx = commandParts.findIndex((value) =>
+        ['launch', 'install', 'repair', 'update'].includes(value)
+      )
+      if (idx > -1) {
+        appNameIndex = idx + 1
+      }
+      break
+    case 'nile':
+      // for nile, we pass the appName as the last command part
+      idx = commandParts.findIndex((value) =>
+        ['launch', 'install', 'update', 'verify'].includes(value)
+      )
+      if (idx > -1) {
+        appNameIndex = commandParts.length - 1
+      }
+      break
+  }
+
+  return appNameIndex > -1 ? commandParts[appNameIndex] : ''
+}
+
 async function callRunner(
   commandParts: string[],
   runner: RunnerProps,
   options?: CallRunnerOptions
 ): Promise<ExecResult> {
-  const fullRunnerPath = join(runner.dir, runner.bin)
-  const appName = commandParts[commandParts.findIndex(() => 'launch') + 1]
+  const appName = appNameFromCommandParts(commandParts, runner.name)
 
   // Necessary to get rid of possible undefined or null entries, else
   // TypeError is triggered
   commandParts = commandParts.filter(Boolean)
+
+  let bin = runner.bin
+  let fullRunnerPath = join(runner.dir, bin)
+
+  // macOS/Linux: `spawn`ing an executable in the current working directory
+  // requires a "./"
+  if (!isWindows) bin = './' + bin
+
+  // On Windows: Use PowerShell's `Start-Process` to wait for the process and
+  // its children to exit, provided PowerShell is available
+  if (shouldUsePowerShell === null)
+    shouldUsePowerShell =
+      isWindows && !!(await searchForExecutableOnPath('powershell'))
+
+  if (shouldUsePowerShell) {
+    const argsAsString = commandParts
+      .map((part) => part.replaceAll('\\', '\\\\'))
+      .map((part) => `"\`"${part}\`""`)
+      .join(',')
+    commandParts = [
+      'Start-Process',
+      `"\`"${fullRunnerPath}\`""`,
+      '-Wait',
+      '-NoNewWindow'
+    ]
+    if (argsAsString) commandParts.push('-ArgumentList', argsAsString)
+
+    bin = fullRunnerPath = 'powershell'
+  }
 
   const safeCommand = getRunnerCallWithoutCredentials(
     [...commandParts],
@@ -974,18 +1058,20 @@ async function callRunner(
     }
 
     if (options?.verboseLogFile) {
-      appendFileSync(
-        options.verboseLogFile,
+      appendRunnerLog(
+        runner.name,
         `[${new Date().toLocaleString()}] ${safeCommand}\n`
       )
     }
 
-    if (options?.logFile && existsSync(options.logFile)) {
-      writeFileSync(options.logFile, '')
+    if (options?.logFile) {
+      if (appName) {
+        initGameLog(appName)
+      } else {
+        initFileLog(options.logFile)
+      }
     }
   }
-
-  const bin = runner.bin
 
   // check if the same command is currently running
   // if so, return the same promise instead of running it again
@@ -1017,11 +1103,15 @@ async function callRunner(
 
       if (!logsDisabled) {
         if (options?.logFile) {
-          appendFileSync(options.logFile, stringToLog)
+          if (appName) {
+            appendGameLog(appName, stringToLog)
+          } else {
+            appendFileLog(options.logFile, stringToLog)
+          }
         }
 
         if (options?.verboseLogFile) {
-          appendFileSync(options.verboseLogFile, stringToLog)
+          appendRunnerLog(runner.name, stringToLog)
         }
       }
 
@@ -1040,11 +1130,15 @@ async function callRunner(
 
       if (!logsDisabled) {
         if (options?.logFile) {
-          appendFileSync(options.logFile, stringToLog)
+          if (appName) {
+            appendGameLog(appName, stringToLog)
+          } else {
+            appendFileLog(options.logFile, stringToLog)
+          }
         }
 
         if (options?.verboseLogFile) {
-          appendFileSync(options.verboseLogFile, stringToLog)
+          appendRunnerLog(runner.name, stringToLog)
         }
       }
 
@@ -1143,11 +1237,25 @@ function getRunnerCallWithoutCredentials(
   const modifiedCommand = [...command]
   // Redact sensitive arguments (Authorization Code for Legendary, token for GOGDL)
   for (const sensitiveArg of ['--code', '--token']) {
-    const sensitiveArgIndex = modifiedCommand.indexOf(sensitiveArg)
-    if (sensitiveArgIndex === -1) {
-      continue
+    // PowerShell's argument formatting is quite different, instead of having
+    // arguments as members of `command`, they're all in one specific member
+    // (the one after "-ArgumentList")
+    if (runnerPath === 'powershell') {
+      const argumentListIndex = modifiedCommand.indexOf('-ArgumentList') + 1
+      if (!argumentListIndex) continue
+      modifiedCommand[argumentListIndex] = modifiedCommand[
+        argumentListIndex
+      ].replace(
+        new RegExp(`"${sensitiveArg}","(.*?)"`),
+        `"${sensitiveArg}","<redacted>"`
+      )
+    } else {
+      const sensitiveArgIndex = modifiedCommand.indexOf(sensitiveArg)
+      if (sensitiveArgIndex === -1) {
+        continue
+      }
+      modifiedCommand[sensitiveArgIndex + 1] = '<redacted>'
     }
-    modifiedCommand[sensitiveArgIndex + 1] = '<redacted>'
   }
 
   const formattedEnvVars: string[] = []
@@ -1202,6 +1310,86 @@ async function getWinePath({
   return stdout.trim()
 }
 
+async function runBeforeLaunchScript(
+  gameInfo: GameInfo,
+  gameSettings: GameSettings
+) {
+  if (!gameSettings.beforeLaunchScriptPath) {
+    return true
+  }
+
+  appendGamePlayLog(
+    gameInfo,
+    `Running script before ${gameInfo.title} (${gameSettings.beforeLaunchScriptPath})\n`
+  )
+
+  return runScriptForGame(gameInfo, gameSettings.beforeLaunchScriptPath)
+}
+
+async function runAfterLaunchScript(
+  gameInfo: GameInfo,
+  gameSettings: GameSettings
+) {
+  if (!gameSettings.afterLaunchScriptPath) {
+    return true
+  }
+
+  appendGamePlayLog(
+    gameInfo,
+    `Running script after ${gameInfo.title} (${gameSettings.afterLaunchScriptPath})\n`
+  )
+  return runScriptForGame(gameInfo, gameSettings.afterLaunchScriptPath)
+}
+
+/* Execute script before launch/after exit, wait until the script
+ * exits to continue
+ *
+ * The script can start sub-processes with `bash another-command &`
+ * if `another-command` should run asynchronously
+ *
+ * For example:
+ *
+ * ```
+ * #!/bin/bash
+ *
+ * echo "this runs before/after the game"
+ * bash ./another.bash & # this is launched before/after the game but is not waited
+ * echo "this also runs before/after the game too" > someoutput.txt
+ * ```
+ *
+ * Notes:
+ * - Output and logs are printed in the game's log
+ * - Make sure the script is executable
+ * - Make sure any async process is not stuck running in the background forever,
+ *   use the after script to kill any running process if that's the case
+ */
+async function runScriptForGame(
+  gameInfo: GameInfo,
+  scriptPath: string
+): Promise<boolean | string> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(scriptPath, { cwd: gameInfo.install.install_path })
+
+    child.stdout.on('data', (data) => {
+      appendGamePlayLog(gameInfo, data.toString())
+    })
+
+    child.stderr.on('data', (data) => {
+      appendGamePlayLog(gameInfo, data.toString())
+    })
+
+    child.on('exit', () => {
+      resolve(true)
+    })
+
+    child.on('error', (err: Error) => {
+      appendGamePlayLog(gameInfo, err.message)
+      if (err.stack) appendGamePlayLog(gameInfo, err.stack)
+      reject(err.message)
+    })
+  })
+}
+
 export {
   prepareLaunch,
   launchCleanup,
@@ -1213,5 +1401,7 @@ export {
   runWineCommand,
   callRunner,
   getRunnerCallWithoutCredentials,
-  getWinePath
+  getWinePath,
+  runAfterLaunchScript,
+  runBeforeLaunchScript
 }

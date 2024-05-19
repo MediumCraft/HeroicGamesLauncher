@@ -1,5 +1,4 @@
 import { logWarning, LogPrefix, logError } from 'backend/logger/logger'
-import * as axios from 'axios'
 import * as crypto from 'crypto'
 import {
   existsSync,
@@ -18,14 +17,15 @@ import {
   WINECROSSOVER_URL,
   WINESTAGINGMACOS_URL
 } from './constants'
-import { VersionInfo, Repositorys, State, ProgressInfo } from 'common/types'
+import { VersionInfo, Repositorys } from 'common/types'
 import {
   fetchReleases,
   getFolderSize,
   unlinkFile,
   unzipFile
 } from './utilities'
-import { calculateEta, downloadFile } from 'backend/utils'
+import { axiosClient, calculateEta, downloadFile } from 'backend/utils'
+import type { WineManagerStatus } from 'common/types'
 
 interface getVersionsProps {
   repositorys?: Repositorys[]
@@ -151,7 +151,7 @@ interface installProps {
   versionInfo: VersionInfo
   installDir: string
   overwrite?: boolean
-  onProgress?: (state: State, progress?: ProgressInfo) => void
+  onProgress?: (state: WineManagerStatus) => void
   abortSignal?: AbortSignal
 }
 
@@ -186,7 +186,7 @@ async function installVersion({
   const installSubDir = installDir + '/' + versionInfo.version
   const sourceChecksum = versionInfo.checksum
     ? (
-        await axios.default.get(versionInfo.checksum, {
+        await axiosClient.get(versionInfo.checksum, {
           responseType: 'text'
         })
       ).data
@@ -248,7 +248,8 @@ async function installVersion({
       versionInfo.downsize
     )
 
-    onProgress('downloading', {
+    onProgress({
+      status: 'downloading',
       percentage,
       eta: eta!,
       avgSpeed: downloadSpeed
@@ -290,19 +291,19 @@ async function installVersion({
     )
   }
 
-  if (!overwrite) {
-    // Unzip
-    try {
-      mkdirSync(installSubDir)
-    } catch (error) {
-      unlinkFile(tarFile)
-      throw new Error(`Failed to make folder ${installSubDir} with:\n ${error}`)
-    }
-  } else {
-    // backup old folder
+  // backup old folder
+  if (overwrite) {
     renameSync(installSubDir, `${installSubDir}_backup`)
   }
 
+  try {
+    mkdirSync(installSubDir)
+  } catch (error) {
+    unlinkFile(tarFile)
+    throw new Error(`Failed to make folder ${installSubDir} with:\n ${error}`)
+  }
+
+  // Unzip
   await unzipFile({
     filePath: tarFile,
     unzipDir: installSubDir,

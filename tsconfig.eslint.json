@@ -1,6 +1,15 @@
 {
-  // extend your base config so you don't have to redefine your compilerOptions
   "extends": "./tsconfig.json",
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.js",
+    "e2e/**/*.ts",
+    "e2e/**/*.tsx",
+    "e2e/**/*.js",
+    "flathub/**/*.ts",
+    "playwright.config.ts",
+    "vite.config.ts"
+  ],
   "exclude": []
 }
